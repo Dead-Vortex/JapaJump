@@ -919,7 +919,7 @@
 
         if(left || right) {
             game.energy -= (0.38 * solarMod * hellDrainMult); 
-            player.vx += left ? -1.5 : 1.5; 
+            player.vx += left ? (player.onG ? -1.5 : -0.6) : (player.onG ? 1.5 : 0.6);
             player.facing = left ? -1 : 1; 
             player.walk += 0.35;
             
@@ -928,8 +928,7 @@
                 addCredits(scrubMod);
             }
         } else { 
-            player.vx *= (player.onG ? bootMod : 0.95); // Apply boots only on ground
-            player.walk = 0; 
+            player.vx *= (player.onG ? 0.10 : 0.95); // Hard brakes on ground            player.walk = 0; 
             game.energy -= (0.05 * solarMod * hellDrainMult); 
         }
 

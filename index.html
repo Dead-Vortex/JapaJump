@@ -2,18 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JIMKIT: DON'T LOOK DOWN - OFFICIAL</title>
     <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@900&display=swap" rel="stylesheet">
+    
     <style>
         :root {
+            /* UI Glassmorphism Variables */
             --glass-bg: rgba(255, 255, 255, 0.15);
             --glass-border: rgba(255, 255, 255, 0.25);
-            --jim-blue: #4facfe; --jim-red: #ff4b2b; --jim-green: #4CAF50;
-            --jim-orange: #FF9800; --jim-sky: #87CEEB; --jim-hell: #2a0000;
+            
+            /* Game Color Palette */
+            --jim-blue: #4facfe; 
+            --jim-red: #ff4b2b; 
+            --jim-green: #4CAF50;
+            --jim-orange: #FF9800; 
+            --jim-sky: #87CEEB; 
+            --jim-hell: #2a0000;
         }
-        body { margin: 0; background: #000; overflow: hidden; font-family: 'Inter', sans-serif; }
-        #app { position: relative; width: 100vw; height: 100vh; background: var(--jim-sky); transition: background 4s; }
+
+        body { 
+            margin: 0; 
+            background: #000; 
+            overflow: hidden; 
+            font-family: 'Inter', sans-serif; 
+        }
+
+        #app { 
+            position: relative; 
+            width: 100vw; 
+            height: 100vh; 
+            background: var(--jim-sky); 
+            transition: background 4s; 
+        }
         
+        /* Advanced Glassmorphism Utilities */
         .glass-ui {
             background: var(--glass-bg);
             backdrop-filter: blur(25px) saturate(200%);
@@ -23,43 +46,200 @@
             color: white;
         }
 
-        .overlay { position: absolute; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #win-screen, #instr-screen { display: none; }
-        
-        .logo { font-family: 'Bungee', cursive; font-size: 110px; color: white; text-shadow: 0 10px 0px rgba(0,0,0,0.1); margin: 0; }
-        
-        .play-btn { 
-            background: white; color: var(--jim-blue); border: none; padding: 25px 100px; 
-            font-family: 'Bungee', cursive; font-size: 35px; border-radius: 60px; cursor: pointer;
-            box-shadow: 0 12px 0px #ccc; transition: 0.1s; margin-top: 20px;
+        .overlay { 
+            position: absolute; 
+            inset: 0; 
+            z-index: 9999; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
         }
-        .play-btn:active { transform: translateY(6px); box-shadow: 0 6px 0px #ccc; }
+
+        #win-screen, #instr-screen { 
+            display: none; 
+        }
+        
+        .logo { 
+            font-family: 'Bungee', cursive; 
+            font-size: 110px; 
+            color: white; 
+            text-shadow: 0 10px 0px rgba(0,0,0,0.1); 
+            margin: 0; 
+        }
+        
+        .play-btn {  
+            background: white; 
+            color: var(--jim-blue); 
+            border: none; 
+            padding: 25px 100px;  
+            font-family: 'Bungee', cursive; 
+            font-size: 35px; 
+            border-radius: 60px; 
+            cursor: pointer;
+            box-shadow: 0 12px 0px #ccc; 
+            transition: 0.1s; 
+            margin-top: 20px;
+        }
+
+        .play-btn:active { 
+            transform: translateY(6px); 
+            box-shadow: 0 6px 0px #ccc; 
+        }
 
         .instr-btn {
-            background: var(--glass-bg); color: white; border: 1px solid var(--glass-border);
-            padding: 12px 50px; font-family: 'Bungee', cursive; font-size: 20px; border-radius: 50px;
-            cursor: pointer; margin-top: 15px; backdrop-filter: blur(10px); transition: 0.2s;
+            background: var(--glass-bg); 
+            color: white; 
+            border: 1px solid var(--glass-border);
+            padding: 12px 50px; 
+            font-family: 'Bungee', cursive; 
+            font-size: 20px; 
+            border-radius: 50px;
+            cursor: pointer; 
+            margin-top: 15px; 
+            backdrop-filter: blur(10px); 
+            transition: 0.2s;
         }
 
-        .hud { position: absolute; top: 20px; width: 100%; display: flex; justify-content: center; gap: 20px; pointer-events: none; z-index: 100; }
-        .hud-card { padding: 12px 25px; border-radius: 25px; text-align: center; min-width: 150px; }
-        .label { font-size: 10px; font-weight: 900; opacity: 0.8; text-transform: uppercase; }
-        .value { font-family: 'Bungee', cursive; font-size: 28px; }
+        /* Head Up Display (HUD) Architecture */
+        .hud { 
+            position: absolute; 
+            top: 20px; 
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+            gap: 20px; 
+            pointer-events: none; 
+            z-index: 100; 
+        }
 
-        .energy-hud { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 650px; text-align: center; pointer-events: none; }
-        .bar-bg { width: 100%; height: 50px; background: rgba(0,0,0,0.5); border: 2px solid var(--glass-border); border-radius: 30px; overflow: hidden; position: relative; backdrop-filter: blur(15px); }
-        #energy-fill { width: 100%; height: 100%; background: linear-gradient(90deg, var(--jim-red), var(--jim-blue)); transition: width 0.1s; }
-        .energy-text { position: absolute; width: 100%; top: 0; line-height: 50px; color: white; font-family: 'Bungee'; font-size: 22px; }
+        .hud-card { 
+            padding: 12px 25px; 
+            border-radius: 25px; 
+            text-align: center; 
+            min-width: 150px; 
+        }
 
-        #quiz-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; }
-        .modal { padding: 40px; border-radius: 45px; width: 700px; text-align: center; max-height: 85vh; overflow-y: auto; }
+        .label { 
+            font-size: 10px; 
+            font-weight: 900; 
+            opacity: 0.8; 
+            text-transform: uppercase; 
+        }
+
+        .value { 
+            font-family: 'Bungee', cursive; 
+            font-size: 28px; 
+        }
+
+        .energy-hud { 
+            position: absolute; 
+            bottom: 40px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 650px; 
+            text-align: center; 
+            pointer-events: none; 
+        }
+
+        .bar-bg { 
+            width: 100%; 
+            height: 50px; 
+            background: rgba(0,0,0,0.5); 
+            border: 2px solid var(--glass-border); 
+            border-radius: 30px; 
+            overflow: hidden; 
+            position: relative; 
+            backdrop-filter: blur(15px); 
+        }
+
+        #energy-fill { 
+            width: 100%; 
+            height: 100%; 
+            background: linear-gradient(90deg, var(--jim-red), var(--jim-blue)); 
+            transition: width 0.1s; 
+        }
+
+        .energy-text { 
+            position: absolute; 
+            width: 100%; 
+            top: 0; 
+            line-height: 50px; 
+            color: white; 
+            font-family: 'Bungee'; 
+            font-size: 22px; 
+        }
+
+        /* Modal Overlay Systems */
+        #quiz-overlay { 
+            position: absolute; 
+            inset: 0; 
+            background: rgba(0,0,0,0.85); 
+            backdrop-filter: blur(20px); 
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 10000; 
+        }
+
+        .modal { 
+            padding: 40px; 
+            border-radius: 45px; 
+            width: 700px; 
+            text-align: center; 
+            max-height: 85vh; 
+            overflow-y: auto; 
+        }
         
-        .opt { background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); padding: 18px; margin: 8px 0; width: 100%; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: 700; color: white; transition: 0.2s; }
-        .opt.correct-flash { background: var(--jim-green) !important; border-color: white !important; box-shadow: 0 0 20px var(--jim-green); }
-        .opt.wrong-flash { background: var(--jim-red) !important; border-color: white !important; box-shadow: 0 0 20px var(--jim-red); }
+        .opt { 
+            background: rgba(255,255,255,0.08); 
+            border: 1px solid var(--glass-border); 
+            padding: 18px; 
+            margin: 8px 0; 
+            width: 100%; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-size: 18px; 
+            font-weight: 700; 
+            color: white; 
+            transition: 0.2s; 
+        }
 
-        #checkpoint-toast { position: absolute; top: 160px; left: 50%; transform: translateX(-50%); font-family: 'Bungee'; font-size: 55px; color: white; opacity: 0; transition: 1s; z-index: 200; }
-        #vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle, transparent 20%, rgba(30,0,0,1) 100%); opacity: 0; transition: opacity 5s; z-index: 50; }
+        .opt.correct-flash { 
+            background: var(--jim-green) !important; 
+            border-color: white !important; 
+            box-shadow: 0 0 20px var(--jim-green); 
+        }
+
+        .opt.wrong-flash { 
+            background: var(--jim-red) !important; 
+            border-color: white !important; 
+            box-shadow: 0 0 20px var(--jim-red); 
+        }
+
+        #checkpoint-toast { 
+            position: absolute; 
+            top: 160px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            font-family: 'Bungee'; 
+            font-size: 55px; 
+            color: white; 
+            opacity: 0; 
+            transition: 1s; 
+            z-index: 200; 
+        }
+
+        #vignette { 
+            position: absolute; 
+            inset: 0; 
+            pointer-events: none; 
+            background: radial-gradient(circle, transparent 20%, rgba(30,0,0,1) 100%); 
+            opacity: 0; 
+            transition: opacity 5s; 
+            z-index: 50; 
+        }
     </style>
 </head>
 <body>
@@ -113,111 +293,192 @@
             <div id="opt-box"></div>
         </div>
     </div>
+    
     <canvas id="stage"></canvas>
 </div>
 
 <script>
+    /**
+     * @fileoverview Japa Jump - SDG 13 Climate Action Platformer
+     * @version 1.0.0
+     * @description Advanced HTML5 Canvas Platformer with integrated educational mechanics.
+     */
+
+    // ==========================================
+    // ENGINE INITIALIZATION
+    // ==========================================
     const canvas = document.getElementById('stage');
     const ctx = canvas.getContext('2d');
+    
+    // Dynamic viewport sizing for responsive canvas
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    /**
+     * Global Game State Management Object
+     * Tracks runtime variables, environmental modifiers, and state machines.
+     * @type {Object}
+     */
     let game = {
-        active: false, quizActive: false,
-        energy: 1000, score: 0, camX: 0, camY: 19500,
-        keys: {}, platforms: [], lastCPHeight: 0,
-        voidLevel: 20500, hellMode: false,
+        active: false, 
+        quizActive: false,
+        energy: 1000, 
+        score: 0, 
+        camX: 0, 
+        camY: 19500,
+        keys: {}, 
+        platforms: [], 
+        lastCPHeight: 0,
+        voidLevel: 20500, 
+        hellMode: false,
         highscore: localStorage.getItem('jimkitAltHighscore') || 0,
         confetti: []
     };
 
+    /**
+     * Player Entity Properties & Physics State
+     * Handles coordinate data, velocity vectors, and animation cycles.
+     * @type {Object}
+     */
     const player = {
-        x: 2500, y: 19800, vx: 0, vy: 0, w: 50, h: 50,
-        facing: 1, walk: 0, canDJ: true, onG: false,
-        platformVelocity: 0, lastSafeX: 2500, lastSafeY: 19800
+        x: 2500, 
+        y: 19800, 
+        vx: 0, 
+        vy: 0, 
+        w: 50, 
+        h: 50,
+        facing: 1, 
+        walk: 0, 
+        canDJ: true, 
+        onG: false,
+        platformVelocity: 0, 
+        lastSafeX: 2500, 
+        lastSafeY: 19800
     };
 
+    // ==========================================
+    // SDG 13: CLIMATE ACTION DATA BANK
+    // Standardized JSON format for easy expansion
+    // ==========================================
     const Q_BANK = [
-        {q: "What is the main cause of global warming?", a: ["Greenhouse gases", "Too many trees", "Wind"], c: 0},
-        {q: "Which energy source is renewable?", a: ["Solar", "Coal", "Natural Gas"], c: 0},
-        {q: "SDG Goal 13 is about?", a: ["Climate Action", "Zero Hunger", "Education"], c: 0},
-        {q: "What do trees absorb from the air?", a: ["Carbon Dioxide", "Oxygen", "Nitrogen"], c: 0},
-        {q: "Which travel is most eco-friendly?", a: ["Bicycling", "Flying", "Driving alone"], c: 0},
-        {q: "What is a major source of methane?", a: ["Livestock/Cows", "Rocks", "Space"], c: 0},
-        {q: "Turning off lights when leaving saves?", a: ["Electricity", "Water", "Oxygen"], c: 0},
-        {q: "What melts because of global warming?", a: ["Glaciers & Ice caps", "Rocks", "Deserts"], c: 0},
-        {q: "Ocean acidification is caused by?", a: ["Absorbing CO2", "Salt", "Plastic"], c: 0},
-        {q: "Sustainability means meeting needs without?", a: ["Hurting the future", "Spending money", "Phones"], c: 0},
-        {q: "Which lightbulb is most efficient?", a: ["LED", "Incandescent", "Neon"], c: 0},
-        {q: "What is a 'carbon footprint'?", a: ["Total GHG impact", "Shoe size", "Walking path"], c: 0},
-        {q: "The ozone layer protects us from?", a: ["UV Rays", "Rain", "Wind"], c: 0},
-        {q: "Which captures more carbon per acre?", a: ["Mangroves", "Parking lots", "Grass"], c: 0},
-        {q: "Fast fashion contributes to?", a: ["Waste & Pollution", "Math skills", "Hunger"], c: 0},
-        {q: "Electric cars primarily reduce?", a: ["Tailpipe emissions", "Traffic", "Flat tires"], c: 0},
-        {q: "What is the primary gas in the atmosphere?", a: ["Nitrogen", "Oxygen", "CO2"], c: 0},
-        {q: "Deforestation removes critical?", a: ["Forests", "Cities", "Deserts"], c: 0},
-        {q: "Which fossil fuel is 'dirtiest'?", a: ["Coal", "Natural Gas", "Propane"], c: 0},
-        {q: "Arctic is warming ______ than the average?", a: ["Faster", "Slower", "Same"], c: 0},
-        {q: "Earth Day is in which month?", a: ["April", "June", "December"], c: 0},
-        {q: "How much of Earth's water is freshwater?", a: ["3%", "50%", "90%"], c: 0},
-        {q: "Drip irrigation saves what?", a: ["Water", "Soil", "Air"], c: 0},
-        {q: "What is 'E-waste'?", a: ["Discarded electronics", "Email spam", "Batteries"], c: 0},
-        {q: "Solar energy is from?", a: ["Sunlight", "Wind", "Waves"], c: 0},
-        {q: "Using a dishwasher vs hand washing usually?", a: ["Saves water", "Wastes water", "Same"], c: 0},
-        {q: "What month is the COP summit usually?", a: ["November", "January", "July"], c: 0},
-        {q: "Which captures more carbon than forests?", a: ["Peatlands", "Highways", "Beaches"], c: 0},
-        {q: "What is permafrost?", a: ["Frozen ground", "Winter ice", "Cold air"], c: 0},
-        {q: "Greenhouse effect means atmosphere?", a: ["Traps heat", "Blocks sun", "Paints houses"], c: 0},
-        {q: "Composting helps reduce waste in?", a: ["Landfills", "Oceans", "Moon"], c: 0},
-        {q: "Most recycled item?", a: ["Steel", "Plastic", "Glass"], c: 0},
-        {q: "Sustainable cities focus on?", a: ["Public transport", "Bigger roads", "More cars"], c: 0},
-        {q: "Microplastics are?", a: ["Tiny fragments", "Large bottles", "New toys"], c: 0},
-        {q: "Which diet has the lowest footprint?", a: ["Plant-based", "Heavy beef", "Fast food"], c: 0},
-        {q: "What is 'Zero Waste'?", a: ["Sending nothing to landfill", "Using 0 energy", "0 money"], c: 0},
-        {q: "Coral bleaching is from?", a: ["Warm water", "Fish swimming", "Deep water"], c: 0},
-        {q: "EPA stands for?", a: ["Env. Protection Agency", "Earth Power", "Eat Apples"], c: 0},
-        {q: "Which helps cool cities?", a: ["Rooftop gardens", "Black paint", "More cars"], c: 0},
-        {q: "Paris Agreement aims to keep warming below?", a: ["2 Degrees", "10 Degrees", "0 Degrees"], c: 0},
-        {q: "Fastest warming place on Earth?", a: ["The Poles", "Sahara", "Pacific"], c: 0},
-        {q: "CO2 levels are measured in?", a: ["PPM", "Liters", "Kilos"], c: 0},
-        {q: "Which captures the most carbon?", a: ["Ocean", "Rocks", "Buildings"], c: 0},
-        {q: "What do cows release?", a: ["Methane", "Oxygen", "Argon"], c: 0},
-        {q: "Which is non-renewable?", a: ["Natural Gas", "Wind", "Tides"], c: 0},
-        {q: "Best way to save resources?", a: ["Reducing & Reusing", "Buying new", "Throwing away"], c: 0},
-        {q: "How many SDGs are there?", a: ["17", "5", "50"], c: 0},
-        {q: "Climate Action requires?", a: ["Everyone", "Only NASA", "Only Teachers"], c: 0},
-        {q: "Recycling paper saves?", a: ["Trees", "Water", "Oxygen"], c: 0},
-        {q: "What color is SDG 13?", a: ["Dark Green", "Red", "Blue"], c: 0}
+        { q: "What is the main cause of global warming?", a: ["Greenhouse gases", "Too many trees", "Wind"], c: 0 },
+        { q: "Which energy source is renewable?", a: ["Solar", "Coal", "Natural Gas"], c: 0 },
+        { q: "SDG Goal 13 is about?", a: ["Climate Action", "Zero Hunger", "Education"], c: 0 },
+        { q: "What do trees absorb from the air?", a: ["Carbon Dioxide", "Oxygen", "Nitrogen"], c: 0 },
+        { q: "Which travel is most eco-friendly?", a: ["Bicycling", "Flying", "Driving alone"], c: 0 },
+        { q: "What is a major source of methane?", a: ["Livestock/Cows", "Rocks", "Space"], c: 0 },
+        { q: "Turning off lights when leaving saves?", a: ["Electricity", "Water", "Oxygen"], c: 0 },
+        { q: "What melts because of global warming?", a: ["Glaciers & Ice caps", "Rocks", "Deserts"], c: 0 },
+        { q: "Ocean acidification is caused by?", a: ["Absorbing CO2", "Salt", "Plastic"], c: 0 },
+        { q: "Sustainability means meeting needs without?", a: ["Hurting the future", "Spending money", "Phones"], c: 0 },
+        { q: "Which lightbulb is most efficient?", a: ["LED", "Incandescent", "Neon"], c: 0 },
+        { q: "What is a 'carbon footprint'?", a: ["Total GHG impact", "Shoe size", "Walking path"], c: 0 },
+        { q: "The ozone layer protects us from?", a: ["UV Rays", "Rain", "Wind"], c: 0 },
+        { q: "Which captures more carbon per acre?", a: ["Mangroves", "Parking lots", "Grass"], c: 0 },
+        { q: "Fast fashion contributes to?", a: ["Waste & Pollution", "Math skills", "Hunger"], c: 0 },
+        { q: "Electric cars primarily reduce?", a: ["Tailpipe emissions", "Traffic", "Flat tires"], c: 0 },
+        { q: "What is the primary gas in the atmosphere?", a: ["Nitrogen", "Oxygen", "CO2"], c: 0 },
+        { q: "Deforestation removes critical?", a: ["Forests", "Cities", "Deserts"], c: 0 },
+        { q: "Which fossil fuel is 'dirtiest'?", a: ["Coal", "Natural Gas", "Propane"], c: 0 },
+        { q: "Arctic is warming ______ than the average?", a: ["Faster", "Slower", "Same"], c: 0 },
+        { q: "Earth Day is in which month?", a: ["April", "June", "December"], c: 0 },
+        { q: "How much of Earth's water is freshwater?", a: ["3%", "50%", "90%"], c: 0 },
+        { q: "Drip irrigation saves what?", a: ["Water", "Soil", "Air"], c: 0 },
+        { q: "What is 'E-waste'?", a: ["Discarded electronics", "Email spam", "Batteries"], c: 0 },
+        { q: "Solar energy is from?", a: ["Sunlight", "Wind", "Waves"], c: 0 },
+        { q: "Using a dishwasher vs hand washing usually?", a: ["Saves water", "Wastes water", "Same"], c: 0 },
+        { q: "What month is the COP summit usually?", a: ["November", "January", "July"], c: 0 },
+        { q: "Which captures more carbon than forests?", a: ["Peatlands", "Highways", "Beaches"], c: 0 },
+        { q: "What is permafrost?", a: ["Frozen ground", "Winter ice", "Cold air"], c: 0 },
+        { q: "Greenhouse effect means atmosphere?", a: ["Traps heat", "Blocks sun", "Paints houses"], c: 0 },
+        { q: "Composting helps reduce waste in?", a: ["Landfills", "Oceans", "Moon"], c: 0 },
+        { q: "Most recycled item?", a: ["Steel", "Plastic", "Glass"], c: 0 },
+        { q: "Sustainable cities focus on?", a: ["Public transport", "Bigger roads", "More cars"], c: 0 },
+        { q: "Microplastics are?", a: ["Tiny fragments", "Large bottles", "New toys"], c: 0 },
+        { q: "Which diet has the lowest footprint?", a: ["Plant-based", "Heavy beef", "Fast food"], c: 0 },
+        { q: "What is 'Zero Waste'?", a: ["Sending nothing to landfill", "Using 0 energy", "0 money"], c: 0 },
+        { q: "Coral bleaching is from?", a: ["Warm water", "Fish swimming", "Deep water"], c: 0 },
+        { q: "EPA stands for?", a: ["Env. Protection Agency", "Earth Power", "Eat Apples"], c: 0 },
+        { q: "Which helps cool cities?", a: ["Rooftop gardens", "Black paint", "More cars"], c: 0 },
+        { q: "Paris Agreement aims to keep warming below?", a: ["2 Degrees", "10 Degrees", "0 Degrees"], c: 0 },
+        { q: "Fastest warming place on Earth?", a: ["The Poles", "Sahara", "Pacific"], c: 0 },
+        { q: "CO2 levels are measured in?", a: ["PPM", "Liters", "Kilos"], c: 0 },
+        { q: "Which captures the most carbon?", a: ["Ocean", "Rocks", "Buildings"], c: 0 },
+        { q: "What do cows release?", a: ["Methane", "Oxygen", "Argon"], c: 0 },
+        { q: "Which is non-renewable?", a: ["Natural Gas", "Wind", "Tides"], c: 0 },
+        { q: "Best way to save resources?", a: ["Reducing & Reusing", "Buying new", "Throwing away"], c: 0 },
+        { q: "How many SDGs are there?", a: ["17", "5", "50"], c: 0 },
+        { q: "Climate Action requires?", a: ["Everyone", "Only NASA", "Only Teachers"], c: 0 },
+        { q: "Recycling paper saves?", a: ["Trees", "Water", "Oxygen"], c: 0 },
+        { q: "What color is SDG 13?", a: ["Dark Green", "Red", "Blue"], c: 0 }
     ];
 
-    function showInstr(s) { document.getElementById('instr-screen').style.display = s ? 'flex' : 'none'; }
+    // ==========================================
+    // UI & MENU MANAGEMENT CONTROLLERS
+    // ==========================================
+    
+    /**
+     * Toggles the visibility of the instruction screen.
+     * @param {boolean} isVisible - True to show, false to hide.
+     */
+    function showInstr(isVisible) { 
+        document.getElementById('instr-screen').style.display = isVisible ? 'flex' : 'none'; 
+    }
 
+    /**
+     * Procedurally generates the level platforms based on mathematical difficulty curves.
+     * Calculates width, vertical gap, and horizontal drift thresholds.
+     */
     function generateLevel() {
         game.platforms = [];
+        
+        // Push initial starting platform
         game.platforms.push({x: 2350, y: 19950, w: 300, h: 50, color: '#2ecc71'});
-        let cy = 19800;
+        
+        let currentY = 19800;
         let lastX = 2500;
-        for(let i=0; i < 1500; i++) {
-            let alt = Math.abs(Math.floor((cy - 19800)/10));
+        
+        // Procedural generation loop
+        for(let i = 0; i < 1500; i++) {
+            let alt = Math.abs(Math.floor((currentY - 19800) / 10));
+            
+            // Difficulty modifiers based on altitude
             let isHell = alt > 1500;
             let isFinal = alt >= 2200;
             
-            let pW = isFinal ? 400 : (isHell ? (45 + Math.random() * 10) : (80 + Math.random() * 30));
+            // Calculate platform properties dynamically
+            let pWidth = isFinal ? 400 : (isHell ? (45 + Math.random() * 10) : (80 + Math.random() * 30));
             let verticalGap = (isHell) ? 210 : (150 + Math.random() * 80);
-            let drift = isHell ? 350 : 550;
-            let rx = isFinal ? 2300 : lastX + (Math.random() * (drift * 2) - drift);
-            if (rx < 1100) rx = 1300; if (rx > 3900) rx = 3700;
+            let horizontalDrift = isHell ? 350 : 550;
             
+            let randomX = isFinal ? 2300 : lastX + (Math.random() * (horizontalDrift * 2) - horizontalDrift);
+            
+            // Clamp horizontal bounds
+            if (randomX < 1100) randomX = 1300; 
+            if (randomX > 3900) randomX = 3700;
+            
+            // Inject platform into physics engine
             game.platforms.push({ 
-                x: rx, y: cy, w: pW, h: 32, 
+                x: randomX, 
+                y: currentY, 
+                w: pWidth, 
+                h: 32, 
                 color: isFinal ? 'gold' : (isHell ? '#ff1a1a' : '#fff'),
-                isHell: isHell, isFinal: isFinal
+                isHell: isHell, 
+                isFinal: isFinal
             });
+            
             if(isFinal) break; 
-            lastX = rx; cy -= verticalGap; 
+            
+            // Step loop forward
+            lastX = randomX; 
+            currentY -= verticalGap; 
         }
     }
 
+    /**
+     * Initializes the core game loop and dismisses the start menu.
+     */
     function beginGame() {
         document.getElementById('start-menu').style.display = 'none';
         generateLevel();
@@ -226,10 +487,14 @@
         requestAnimationFrame(update);
     }
 
+    /**
+     * Particle effect generator for the victory sequence.
+     */
     function spawnConfetti() {
-        for(let i=0; i<100; i++) {
+        for(let i = 0; i < 100; i++) {
             game.confetti.push({
-                x: Math.random() * canvas.width, y: -20,
+                x: Math.random() * canvas.width, 
+                y: -20,
                 s: 5 + Math.random() * 10,
                 v: 2 + Math.random() * 5,
                 c: `hsl(${Math.random() * 360}, 70%, 60%)`
@@ -237,124 +502,302 @@
         }
     }
 
+    // ==========================================
+    // CORE PHYSICS & LOGIC LOOP
+    // ==========================================
+    
+    /**
+     * Main runtime engine processing physics, inputs, and environmental triggers.
+     */
     function update() {
         if(!game.active || game.quizActive) return;
+        
+        // Environment trigger: Hell Mode execution
         if (game.score >= 1500 && !game.hellMode) {
             game.hellMode = true;
             document.getElementById('app').style.background = 'var(--jim-hell)';
             document.getElementById('vignette').style.opacity = '1';
         }
-        window.onkeydown = e => { if(["ArrowUp","Space","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD"].includes(e.code)) e.preventDefault(); game.keys[e.code] = true; };
-        window.onkeyup = e => game.keys[e.code] = false;
-        const left = game.keys['ArrowLeft'] || game.keys['KeyA'];
-        const right = game.keys['ArrowRight'] || game.keys['KeyD'];
-        if(left || right) {
-            game.energy -= 0.38; player.vx = left ? -12 : 12; player.facing = left ? -1 : 1; player.walk += 0.35;
-        } else { player.vx *= 0.82; player.walk = 0; game.energy -= 0.03; }
+        
+        // Input Management System
+        window.onkeydown = e => { 
+            if(["ArrowUp","Space","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD"].includes(e.code)) {
+                e.preventDefault(); 
+            }
+            game.keys[e.code] = true; 
+        };
+        
+        window.onkeyup = e => {
+            game.keys[e.code] = false;
+        };
+        
+        // Horizontal Physics & Input Handling
+        const leftInput = game.keys['ArrowLeft'] || game.keys['KeyA'];
+        const rightInput = game.keys['ArrowRight'] || game.keys['KeyD'];
+        
+        if(leftInput || rightInput) {
+            game.energy -= 0.38; 
+            player.vx = leftInput ? -12 : 12; 
+            player.facing = leftInput ? -1 : 1; 
+            player.walk += 0.35;
+        } else { 
+            // Friction and idle energy drain
+            player.vx *= 0.82; 
+            player.walk = 0; 
+            game.energy -= 0.03; 
+        }
+        
+        // Apply velocity vectors
         player.x += player.vx; 
-        player.vy += 0.8; player.y += player.vy;
+        player.vy += 0.8; // Gravity constant
+        player.y += player.vy;
+        
+        // Collision Detection System (AABB Intersects)
         player.onG = false;
         game.platforms.forEach(p => {
-            if(player.vy > 0 && player.x + 40 > p.x && player.x < p.x + p.w && player.y + player.h > p.y && player.y + player.h < p.y + p.h + 20) {
-                player.y = p.y - player.h; player.vy = 0; player.onG = true; player.canDJ = true;
+            if(player.vy > 0 && 
+               player.x + 40 > p.x && 
+               player.x < p.x + p.w && 
+               player.y + player.h > p.y && 
+               player.y + player.h < p.y + p.h + 20) {
+                
+                // Resolution
+                player.y = p.y - player.h; 
+                player.vy = 0; 
+                player.onG = true; 
+                player.canDJ = true;
+                
+                // Win Condition Check
                 if(p.isFinal) { 
                     game.active = false; 
                     spawnConfetti();
                     document.getElementById('win-screen').style.display = 'flex';
                 }
-                let cur = Math.abs(Math.floor((player.y - 19800)/10));
-                if (cur >= game.lastCPHeight + 500) {
-                    game.lastCPHeight = Math.floor(cur / 500) * 500;
-                    player.lastSafeX = p.x + p.w/2; player.lastSafeY = p.y;
-                    game.voidLevel = p.y + 750; triggerCPToast(game.lastCPHeight);
+                
+                // Checkpoint Management Logic
+                let currentAltitude = Math.abs(Math.floor((player.y - 19800) / 10));
+                if (currentAltitude >= game.lastCPHeight + 500) {
+                    game.lastCPHeight = Math.floor(currentAltitude / 500) * 500;
+                    player.lastSafeX = p.x + p.w / 2; 
+                    player.lastSafeY = p.y;
+                    game.voidLevel = p.y + 750; 
+                    triggerCPToast(game.lastCPHeight);
                 }
             }
         });
-        const jump = game.keys['ArrowUp'] || game.keys['Space'] || game.keys['KeyW'];
-        if(jump && !game.keys.locked) {
-            if(player.onG) { player.vy = -18.5; game.energy -= 20; }
-            else if(player.canDJ) { player.vy = -16; player.canDJ = false; game.energy -= 28; }
+        
+        // Vertical Physics (Jumping mechanics)
+        const jumpInput = game.keys['ArrowUp'] || game.keys['Space'] || game.keys['KeyW'];
+        if(jumpInput && !game.keys.locked) {
+            if(player.onG) { 
+                player.vy = -18.5; 
+                game.energy -= 20; 
+            } else if(player.canDJ) { 
+                player.vy = -16; 
+                player.canDJ = false; 
+                game.energy -= 28; 
+            }
             game.keys.locked = true;
         }
-        if(!jump) game.keys.locked = false;
+        if(!jumpInput) game.keys.locked = false;
+        
+        // Camera Lerping (Linear Interpolation)
         game.camX += (player.x - canvas.width/2 - game.camX) * 0.1;
         game.camY += (player.y - canvas.height/2 - game.camY) * 0.1;
+        
+        // Void Death & Checkpoint Respawn
         if(player.y > game.voidLevel) { 
-            game.energy = 0; player.x = player.lastSafeX - 25; player.y = player.lastSafeY - 60; player.vx = 0; player.vy = 0;
+            game.energy = 0; 
+            player.x = player.lastSafeX - 25; 
+            player.y = player.lastSafeY - 60; 
+            player.vx = 0; 
+            player.vy = 0;
         }
-        if(game.energy <= 0) { triggerQuiz(); return; }
-        game.score = Math.abs(Math.floor((player.y - 19800)/10));
+        
+        // Energy Depletion Trigger
+        if(game.energy <= 0) { 
+            triggerQuiz(); 
+            return; 
+        }
+        
+        // Score updating
+        game.score = Math.abs(Math.floor((player.y - 19800) / 10));
         if(game.score > game.highscore) {
             game.highscore = game.score;
             localStorage.setItem('jimkitAltHighscore', game.highscore);
             document.getElementById('hi-val').innerText = game.highscore + 'm';
         }
+        
+        // Execute render cycle
         draw();
         requestAnimationFrame(update);
     }
 
+    /**
+     * UI Helper to display milestone checkpoints.
+     * @param {number} h - Altitude reached
+     */
     function triggerCPToast(h) {
         const toast = document.getElementById('checkpoint-toast');
-        toast.innerText = h + "m REACHED"; toast.style.opacity = 1;
-        if(game.hellMode) toast.style.color = "red";
+        toast.innerText = h + "m REACHED"; 
+        toast.style.opacity = 1;
+        if(game.hellMode) {
+            toast.style.color = "red";
+        }
         setTimeout(() => toast.style.opacity = 0, 2000);
         document.getElementById('zone-val').innerText = h + "m";
     }
 
+    // ==========================================
+    // RENDER ENGINE
+    // ==========================================
+    
+    /**
+     * Clears canvas and renders all visual components relative to the virtual camera.
+     */
     function draw() {
+        // Clear previous frame
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Render platforms with frustum culling optimization
         game.platforms.forEach(o => {
-            let sx = o.x - game.camX, sy = o.y - game.camY;
+            let sx = o.x - game.camX;
+            let sy = o.y - game.camY;
+            
+            // Culling: Do not draw objects off-screen
             if(sy < -300 || sy > canvas.height + 300) return;
-            ctx.fillStyle = o.color; if(o.isHell) { ctx.shadowBlur = 20; ctx.shadowColor = "red"; }
-            if(o.isFinal) { ctx.shadowBlur = 40; ctx.shadowColor = "gold"; }
-            ctx.fillRect(sx, sy, o.w, o.h); ctx.shadowBlur = 0;
-            ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(sx, sy + o.h/2, o.w, o.h/2);
+            
+            ctx.fillStyle = o.color; 
+            
+            // Dynamic shadow application based on state
+            if(o.isHell) { 
+                ctx.shadowBlur = 20; 
+                ctx.shadowColor = "red"; 
+            }
+            if(o.isFinal) { 
+                ctx.shadowBlur = 40; 
+                ctx.shadowColor = "gold"; 
+            }
+            
+            ctx.fillRect(sx, sy, o.w, o.h); 
+            ctx.shadowBlur = 0; // Reset shadow
+            
+            // Faux 3D depth rendering
+            ctx.fillStyle = "rgba(0,0,0,0.3)"; 
+            ctx.fillRect(sx, sy + o.h/2, o.w, o.h/2);
         });
         
+        // Render Player Avatar via transformation matrix
         ctx.save();
         ctx.translate(player.x - game.camX + player.w/2, player.y - game.camY + player.h/2);
-        ctx.scale(player.facing, 1);
-        ctx.fillStyle = game.hellMode ? "#1a1a1a" : "#4CAF50"; ctx.beginPath(); ctx.roundRect(-25, -25, 50, 50, 12); ctx.fill();
-        ctx.fillStyle = game.hellMode ? "#800" : "#FF9800"; ctx.fillRect(-28, -28, 56, 18);
+        ctx.scale(player.facing, 1); // Flip context based on orientation
+        
+        // Body Base
+        ctx.fillStyle = game.hellMode ? "#1a1a1a" : "#4CAF50"; 
+        ctx.beginPath(); 
+        ctx.roundRect(-25, -25, 50, 50, 12); 
+        ctx.fill();
+        
+        // Visor/Mask
+        ctx.fillStyle = game.hellMode ? "#800" : "#FF9800"; 
+        ctx.fillRect(-28, -28, 56, 18);
+        
+        // Animation cycle calculation
         let leg = Math.sin(player.walk) * 15;
-        ctx.fillStyle = "#111"; ctx.fillRect(-18, 18, 14, 15 + leg); ctx.fillRect(4, 18, 14, 15 - leg);
-        ctx.fillStyle = game.hellMode ? "red" : "white"; ctx.fillRect(10, -5, 8, 8); ctx.fillRect(25, -5, 8, 8);
+        
+        // Render Legs
+        ctx.fillStyle = "#111"; 
+        ctx.fillRect(-18, 18, 14, 15 + leg); 
+        ctx.fillRect(4, 18, 14, 15 - leg);
+        
+        // Eyes/Glow details
+        ctx.fillStyle = game.hellMode ? "red" : "white"; 
+        ctx.fillRect(10, -5, 8, 8); 
+        ctx.fillRect(25, -5, 8, 8);
         ctx.restore();
 
+        // Render Confetti Particle System
         game.confetti.forEach((c, i) => {
-            c.y += c.v; ctx.fillStyle = c.c; ctx.fillRect(c.x, c.y, c.s, c.s);
-            if(c.y > canvas.height) game.confetti.splice(i, 1);
+            c.y += c.v; 
+            ctx.fillStyle = c.c; 
+            ctx.fillRect(c.x, c.y, c.s, c.s);
+            
+            // Garbage collection for off-screen particles
+            if(c.y > canvas.height) {
+                game.confetti.splice(i, 1);
+            }
         });
 
+        // Sync Data to DOM Elements
         document.getElementById('alt-val').innerText = game.score + 'm';
         document.getElementById('pct-val').innerText = Math.max(0, Math.floor(game.energy/10)) + '%';
         document.getElementById('energy-fill').style.width = (game.energy/10) + '%';
         document.getElementById('fuel-num').innerText = Math.max(0, Math.floor(game.energy));
     }
 
-    function triggerQuiz() { game.quizActive = true; document.getElementById('quiz-overlay').style.display = 'flex'; displayQuestion(); }
+    // ==========================================
+    // QUIZ LOGIC CONTROLLER
+    // ==========================================
+    
+    /**
+     * Pauses the engine and invokes the interactive quiz menu.
+     */
+    function triggerQuiz() { 
+        game.quizActive = true; 
+        document.getElementById('quiz-overlay').style.display = 'flex'; 
+        displayQuestion(); 
+    }
 
+    /**
+     * Extracts a random question, shuffles inputs, and mounts events to the DOM.
+     */
     function displayQuestion() {
         const q = Q_BANK[Math.floor(Math.random() * Q_BANK.length)];
+        
+        // Map original index to retain answer validation after shuffle
         let answers = q.a.map((text, index) => ({ text, originalIndex: index }));
         answers.sort(() => Math.random() - 0.5);
+        
         document.getElementById('q-text').innerText = q.q;
-        const box = document.getElementById('opt-box'); box.innerHTML = '';
+        const box = document.getElementById('opt-box'); 
+        box.innerHTML = '';
+        
+        // Build answer buttons dynamically
         answers.forEach((ans) => {
-            const b = document.createElement('button'); b.className = 'opt glass-ui'; b.innerText = ans.text;
-            b.onclick = () => {
-                Array.from(box.children).forEach(btn => btn.disabled = true);
+            const btn = document.createElement('button'); 
+            btn.className = 'opt glass-ui'; 
+            btn.innerText = ans.text;
+            
+            // Apply click listener and validation logic
+            btn.onclick = () => {
+                // Disable all buttons to prevent double-clicking
+                Array.from(box.children).forEach(b => b.disabled = true);
+                
                 if(ans.originalIndex === q.c) {
-                    b.classList.add('correct-flash');
-                    setTimeout(() => { game.energy = 1000; game.quizActive = false; document.getElementById('quiz-overlay').style.display = 'none'; requestAnimationFrame(update); }, 800);
+                    btn.classList.add('correct-flash');
+                    
+                    // Delay cleanup to show UI feedback
+                    setTimeout(() => { 
+                        game.energy = 1000; 
+                        game.quizActive = false; 
+                        document.getElementById('quiz-overlay').style.display = 'none'; 
+                        requestAnimationFrame(update); 
+                    }, 800);
                 } else {
-                    b.classList.add('wrong-flash');
-                    Array.from(box.children).forEach(btn => { if (btn.innerText === q.a[q.c]) btn.classList.add('correct-flash'); });
+                    btn.classList.add('wrong-flash');
+                    
+                    // Highlight the correct answer for educational purposes
+                    Array.from(box.children).forEach(b => { 
+                        if (b.innerText === q.a[q.c]) {
+                            b.classList.add('correct-flash');
+                        }
+                    });
+                    
+                    // Reset with a new question if wrong
                     setTimeout(displayQuestion, 1500);
                 }
             };
-            box.appendChild(b);
+            box.appendChild(btn);
         });
     }
 </script>

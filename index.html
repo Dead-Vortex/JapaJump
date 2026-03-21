@@ -1087,8 +1087,8 @@
         let cy = 19800, lastX = 2500;
         for(let i=0; i < 1500; i++) {
             let alt = Math.abs(Math.floor((cy - 19800)/10));
-            let isHell = alt > (1500 + albedoBonus);
-            let isFinal = alt >= 2200;
+            let isHell = alt > (9000 + albedoBonus);
+            let isFinal = alt >= 10000;
             let isCP = alt > 0 && alt % 500 === 0;
             
             let pW = isFinal ? 400 : (isHell ? (45 + Math.random() * 10) : (80 + Math.random() * 30));
@@ -1174,9 +1174,12 @@
 
         player.maxJumps = 2 + kelpMod;
 
-        if (game.score >= (1500 + albedoMod) && !game.hellMode) {
+        // --- HELL ZONE TRIGGER AT 9000m ---
+        const albedoMod = SHOP_ITEMS.albedo.getEffect(gameSave.upgrades.albedo);
+
+        if (game.score >= (9000 + albedoMod) && !game.hellMode) {
             game.hellMode = true;
-            document.getElementById('app').style.background = 'var(--jim-hell)';
+            document.getElementById('app').style.background = 'var(--jim-hell)'; 
             document.getElementById('vignette').style.opacity = Math.max(0, 1 - shieldMod);
         }
 

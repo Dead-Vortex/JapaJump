@@ -497,6 +497,77 @@
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 5px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--jim-blue); }
 
+        /* AUTHENTICATION STYLES */
+        #auth-overlay {
+            display: flex; 
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 10005; /* Ensures it sits above everything when loaded */
+        }
+
+        .auth-container {
+            padding: 40px; 
+            border-radius: 30px; 
+            width: 400px; 
+            text-align: center;
+            border: 2px solid var(--glass-border);
+            box-shadow: 0 0 50px rgba(79, 172, 254, 0.2);
+        }
+
+        .auth-input {
+            width: 85%; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 12px; 
+            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .auth-input:focus {
+            border-color: var(--jim-blue);
+            box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .auth-btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+
+        .auth-btn {
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-family: 'Bungee';
+            font-size: 18px;
+            cursor: pointer;
+            border: 2px solid var(--jim-blue);
+            transition: 0.2s;
+        }
+
+        .btn-signin {
+            background: transparent;
+            color: var(--jim-blue);
+        }
+
+        .btn-signin:hover {
+            background: rgba(79, 172, 254, 0.1);
+        }
+
+        .btn-signup {
+            background: var(--jim-blue);
+            color: black;
+        }
+
+        .btn-signup:hover {
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+        }
+
     </style>
 </head>
 <body>
@@ -506,20 +577,24 @@
     <div id="checkpoint-toast">CHECKPOINT!</div>
     <div id="credit-toast">+50 CREDITS</div>
 
-    <div id="auth-overlay" class="overlay" style="display: flex; background: rgba(0,0,0,0.9);">
-    <div class="glass-ui" style="padding: 40px; border-radius: 30px; width: 400px; text-align: center;">
-        <h2 style="font-family:'Bungee';">PILOT LOGIN</h2>
-        <input type="text" id="auth-user" placeholder="USERNAME" style="width: 80%; padding: 10px; margin: 10px; border-radius: 10px; border: none;">
-        <input type="password" id="auth-pass" placeholder="PASSWORD" style="width: 80%; padding: 10px; margin: 10px; border-radius: 10px; border: none;">
-        <div style="margin-top: 20px;">
-            <button class="instr-btn" onclick="handleAuth('signin')" style="padding: 10px 30px;">SIGN IN</button>
-            <button class="instr-btn" onclick="handleAuth('signup')" style="padding: 10px 30px; background: var(--jim-blue); color: black;">SIGN UP</button>
+    <div id="auth-overlay" class="overlay">
+        <div class="auth-container glass-ui">
+            <h2 style="font-family:'Bungee'; margin-top: 0; color: var(--jim-blue); font-size: 35px;">PILOT LOGIN</h2>
+            <p style="color: #ccc; font-size: 14px; margin-bottom: 25px;">Enter credentials to sync telemetry data.</p>
+            
+            <input type="text" id="auth-user" class="auth-input" placeholder="USERNAME" autocomplete="off">
+            <input type="password" id="auth-pass" class="auth-input" placeholder="PASSWORD">
+            
+            <div class="auth-btn-group">
+                <button class="auth-btn btn-signin" onclick="handleAuth('signin')">SIGN IN</button>
+                <button class="auth-btn btn-signup" onclick="handleAuth('signup')">SIGN UP</button>
+            </div>
+            
+            <p id="auth-msg" style="color: var(--jim-red); margin-top: 20px; font-weight: bold; min-height: 20px;"></p>
         </div>
-        <p id="auth-msg" style="color: var(--jim-red); margin-top: 15px; font-weight: bold;"></p>
     </div>
-</div>
 
-    <div id="start-menu" class="overlay">
+    <div id="start-menu" class="overlay" style="display: none;">
         <h1 class="logo">japa jump</h1>
         <p style="color: white; font-weight: 900; letter-spacing: 4px; opacity: 0.9;">SDG 13: CLIMATE ACTION</p>
         <button class="play-btn" onclick="beginGame()">START CLIMB</button>
@@ -604,46 +679,58 @@
 
 <script>
     const SAVE_KEY = 'japa_jump_v5_save';
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyx7Lvqtf8-3zEmHQbK4gqGD6o-1zy7AY4DC7Fugw2GqoLQpnaftnAv7nOLVs4PptJPCA/exec'; // PASTE YOUR URL HERE
-let currentUser = null;
-
-async function handleAuth(action) {
-    const user = document.getElementById('auth-user').value;
-    const pass = document.getElementById('auth-pass').value;
-    const msg = document.getElementById('auth-msg');
-
-    if (!user || !pass) { msg.innerText = "FILL ALL FIELDS"; return; }
+    // IMPORTANT: Make sure this URL is correct and deployed as a Web App accessible by "Anyone"
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyx7Lvqtf8-3zEmHQbK4gqGD6o-1zy7AY4DC7Fugw2GqoLQpnaftnAv7nOLVs4PptJPCA/exec'; 
     
-    msg.innerText = "CONNECTING...";
-    
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action, username: user, password: pass })
-        });
-        const result = await response.text();
+    let currentUser = null;
 
-        if (result === "success") {
-            msg.style.color = "var(--jim-green)";
-            msg.innerText = "ACCOUNT CREATED! NOW SIGN IN.";
-        } else if (result === "exists") {
-            msg.innerText = "USERNAME TAKEN";
-        } else if (result === "fail") {
-            msg.innerText = "WRONG CREDENTIALS";
-        } else {
-            // Success Sign In - 'result' is the highscore from the sheet
-            currentUser = user;
-            gameSave.highscore = parseInt(result) || 0;
-            document.getElementById('auth-overlay').style.display = 'none';
-            saveGame(); // Sync local data
+    // Fixed Auth Logic
+    async function handleAuth(action) {
+        const user = document.getElementById('auth-user').value;
+        const pass = document.getElementById('auth-pass').value;
+        const msg = document.getElementById('auth-msg');
+
+        if (!user || !pass) { 
+            msg.style.color = "var(--jim-red)";
+            msg.innerText = "FILL ALL FIELDS"; 
+            return; 
         }
-    } catch (e) {
-        msg.innerText = "SERVER ERROR";
-        console.error(e);
-    }
-}
+        
+        msg.style.color = "white";
+        msg.innerText = "CONNECTING TO SECURE SERVER...";
+        
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: action, username: user, password: pass })
+            });
+            
+            const result = await response.text();
 
-    
+            if (result === "success") {
+                msg.style.color = "var(--jim-green)";
+                msg.innerText = "ACCOUNT CREATED! NOW CLICK SIGN IN.";
+            } else if (result === "exists") {
+                msg.style.color = "var(--jim-orange)";
+                msg.innerText = "USERNAME ALREADY TAKEN";
+            } else if (result === "fail") {
+                msg.style.color = "var(--jim-red)";
+                msg.innerText = "INCORRECT USERNAME OR PASSWORD";
+            } else {
+                // Success Sign In - 'result' is the highscore from the sheet
+                currentUser = user;
+                gameSave.highscore = parseInt(result) || 0;
+                document.getElementById('auth-overlay').style.display = 'none';
+                document.getElementById('start-menu').style.display = 'flex'; // Show start menu after login
+                saveGame(); // Sync local data
+            }
+        } catch (e) {
+            msg.style.color = "var(--jim-red)";
+            msg.innerText = "SERVER CONNECTION FAILED";
+            console.error(e);
+        }
+    }
+
     const DEFAULT_SAVE = {
         highscore: 0,
         credits: 0,

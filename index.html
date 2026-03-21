@@ -714,7 +714,7 @@
 <script>
     const SAVE_KEY = 'japa_jump_v5_save';
     // IMPORTANT: Make sure this URL is correct and deployed as a Web App accessible by "Anyone"
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyshKlt_8DryXYGZV9wFyuOAN7TvRDdmvtISW2wKDVt58h2FJck_rf7DEhZNQgvrpvzXw/exec'; 
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyrdPeFI3A4f0_sqxNh9YtPgdVXYfPGe_VNcn7qoIG8rw1PBzkKGKz2NIwKkAkUB7JzMg/exec'; 
     
     let currentUser = null;
     let scoreSyncInterval = null;
@@ -753,87 +753,83 @@
         }
     }
 
-    async function syncScore() {
-        if (!currentUser || gameSave.highscore <= 0) return;
-        try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'updateScore', username: currentUser, score: gameSave.highscore })
-            });
-        } catch(e) { console.log("Silent score sync fail"); }
-    }
-
+    // --- NEW CLOUD SYNC LOGIC ---
     async function handleAuth(action) {
         const user = document.getElementById('auth-user').value;
         const pass = document.getElementById('auth-pass').value;
         const email = document.getElementById('auth-email').value;
         const msg = document.getElementById('auth-msg');
 
-        if (action === 'resetPassword') {
-            if(!user || !email) { msg.style.color="var(--jim-red)"; msg.innerText = "ENTER USERNAME & EMAIL TO RESET"; return; }
-        } else if (!user || !pass) { 
-            msg.style.color = "var(--jim-red)";
-            msg.innerText = "FILL USERNAME & PASSWORD"; 
-            return; 
-        }
-
-        if (action === 'signup' && !email) {
-            msg.style.color = "var(--jim-red)";
-            msg.innerText = "EMAIL REQUIRED FOR SIGNUP"; 
-            return; 
-        }
-        
+        if (action !== 'resetPassword' && (!user || !pass)) { msg.innerText = "FILL USER/PASS"; return; }
         msg.style.color = "white";
-        msg.innerText = "COMMUNICATING WITH SERVER...";
+        msg.innerText = "SYNCING CLOUD DATA...";
         
         try {
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify({ action: action, username: user, password: pass, email: email })
+                body: JSON.stringify({ action, username: user, password: pass, email: email })
             });
-            
             const result = await response.text();
 
-            if (result === "success") {
+            if (result === "success") { 
                 msg.style.color = "var(--jim-green)";
-                msg.innerText = "ACCOUNT CREATED! NOW CLICK LOGIN.";
-                updateLeaderboard();
-            } else if (result === "exists") {
-                msg.style.color = "var(--jim-orange)";
-                msg.innerText = "USERNAME ALREADY TAKEN";
-            } else if (result === "fail") {
+                msg.innerText = "CREATED! SIGN IN NOW."; 
+            }
+            else if (result === "fail") { 
                 msg.style.color = "var(--jim-red)";
-                msg.innerText = "INCORRECT CREDENTIALS";
-            } else if (result === "email_sent") {
+                msg.innerText = "WRONG LOGIN"; 
+            }
+            else if (result === "email_sent") {
                 msg.style.color = "var(--jim-green)";
-                msg.innerText = "PASSWORD RECOVERY SENT TO EMAIL!";
-            } else if (result === "not_found") {
-                msg.style.color = "var(--jim-red)";
-                msg.innerText = "ACCOUNT OR EMAIL NOT FOUND";
-            } else {
-                // Success Sign In - 'result' is the highscore from the sheet
+                msg.innerText = "PASSWORD SENT TO EMAIL!";
+            }
+            else if (result.includes("|")) {
+                // LOAD CLOUD DATA: Score|Credits|Inventory
+                const parts = result.split("|");
                 currentUser = user;
-                let remoteScore = parseInt(result) || 0;
+                gameSave.highscore = parseInt(parts[0]);
+                gameSave.credits = parseFloat(parts[1]);
                 
-                // Keep whichever is higher, local or remote
-                if(remoteScore > gameSave.highscore) {
-                    gameSave.highscore = remoteScore;
-                }
-                
+                const cloudInv = JSON.parse(parts[2]);
+                if (cloudInv.upgrades) gameSave.upgrades = cloudInv.upgrades;
+                if (cloudInv.skins) gameSave.skins = cloudInv.skins;
+
                 document.getElementById('auth-overlay').style.display = 'none';
                 document.getElementById('start-menu').style.display = 'flex';
-                saveGame();
-                syncScore(); // Sync immediately in case local was higher
-                scoreSyncInterval = setInterval(syncScore, 15000); // Sync every 15s
-            }
-        } catch (e) {
-            msg.style.color = "var(--jim-red)";
-            msg.innerText = "SERVER CONNECTION FAILED";
-            console.error(e);
-        }
+                
+                // Manual update of UI values
+                updateHUDValues();
+                localStorage.setItem(SAVE_KEY, JSON.stringify(gameSave));
+                
+                setInterval(syncAllData, 20000); // Background cloud sync every 20s
+            } else { msg.innerText = result; }
+        } catch (e) { msg.innerText = "SERVER ERROR"; }
     }
 
-    // Load leaderboard on boot
+    async function syncAllData() {
+        if (!currentUser) return;
+        const inventory = { upgrades: gameSave.upgrades, skins: gameSave.skins };
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    action: 'syncAll', 
+                    username: currentUser, 
+                    score: gameSave.highscore, 
+                    credits: gameSave.credits,
+                    inventory: inventory
+                })
+            });
+        } catch(e) { console.warn("Cloud Sync Failed"); }
+    }
+
+    function saveGame() {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(gameSave));
+        updateHUDValues();
+        if (currentUser) syncAllData(); // Push to cloud whenever something changes
+    }
+    // --- END CLOUD SYNC LOGIC ---
+
     updateLeaderboard();
 
     const DEFAULT_SAVE = {
@@ -856,11 +852,6 @@
     gameSave = { ...DEFAULT_SAVE, ...gameSave };
     gameSave.upgrades = { ...DEFAULT_SAVE.upgrades, ...(gameSave.upgrades || {}) };
     gameSave.skins = { ...DEFAULT_SAVE.skins, ...(gameSave.skins || {}) };
-
-    function saveGame() {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(gameSave));
-        updateHUDValues();
-    }
 
     function addCredits(amt) {
         gameSave.credits += amt;
@@ -1285,7 +1276,6 @@
         if(game.score > gameSave.highscore) { 
             gameSave.highscore = game.score; 
             saveGame(); 
-            syncScore(); // Sync whenever there's a new high score
         }
 
         draw();
@@ -1310,9 +1300,9 @@
     }
 
     function updateHUDValues() {
-        document.getElementById('hi-val').innerText = gameSave.highscore + 'm';
-        document.getElementById('cred-val').innerText = Math.floor(gameSave.credits);
-        document.getElementById('shop-balance-val').innerText = Math.floor(gameSave.credits);
+        document.getElementById('hi-val').innerText = (gameSave.highscore || 0) + 'm';
+        document.getElementById('cred-val').innerText = Math.floor(gameSave.credits || 0);
+        document.getElementById('shop-balance-val').innerText = Math.floor(gameSave.credits || 0);
     }
 
     function draw() {

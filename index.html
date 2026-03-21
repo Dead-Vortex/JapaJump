@@ -595,7 +595,7 @@
 <div id="app">
     <div id="vignette"></div>
     <div id="checkpoint-toast">CHECKPOINT!</div>
-    <div id="credit-toast">+50 CREDITS</div>
+    <div id="credit-toast">+100 CREDITS</div>
 
     <div id="auth-overlay" class="overlay">
         <div class="auth-container glass-ui">
@@ -713,7 +713,6 @@
 
 <script>
     const SAVE_KEY = 'japa_jump_v5_save';
-    // IMPORTANT: Make sure this URL is correct and deployed as a Web App accessible by "Anyone"
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyrdPeFI3A4f0_sqxNh9YtPgdVXYfPGe_VNcn7qoIG8rw1PBzkKGKz2NIwKkAkUB7JzMg/exec'; 
     
     let currentUser = null;
@@ -753,7 +752,6 @@
         }
     }
 
-    // --- NEW CLOUD SYNC LOGIC ---
     async function handleAuth(action) {
         const user = document.getElementById('auth-user').value;
         const pass = document.getElementById('auth-pass').value;
@@ -784,7 +782,6 @@
                 msg.innerText = "PASSWORD SENT TO EMAIL!";
             }
             else if (result.includes("|")) {
-                // LOAD CLOUD DATA: Score|Credits|Inventory
                 const parts = result.split("|");
                 currentUser = user;
                 gameSave.highscore = parseInt(parts[0]);
@@ -797,11 +794,10 @@
                 document.getElementById('auth-overlay').style.display = 'none';
                 document.getElementById('start-menu').style.display = 'flex';
                 
-                // Manual update of UI values
                 updateHUDValues();
                 localStorage.setItem(SAVE_KEY, JSON.stringify(gameSave));
                 
-                setInterval(syncAllData, 20000); // Background cloud sync every 20s
+                setInterval(syncAllData, 20000); 
             } else { msg.innerText = result; }
         } catch (e) { msg.innerText = "SERVER ERROR"; }
     }
@@ -826,9 +822,8 @@
     function saveGame() {
         localStorage.setItem(SAVE_KEY, JSON.stringify(gameSave));
         updateHUDValues();
-        if (currentUser) syncAllData(); // Push to cloud whenever something changes
+        if (currentUser) syncAllData(); 
     }
-    // --- END CLOUD SYNC LOGIC ---
 
     updateLeaderboard();
 
@@ -1050,15 +1045,15 @@
     let game = {
         active: false, quizActive: false,
         energy: 1000, maxEnergy: 1000, score: 0, 
-        camX: 0, camY: 19500, keys: {}, platforms: [], 
-        lastCPHeight: 0, voidLevel: 20500, hellMode: false,
+        camX: 0, camY: -300, keys: {}, platforms: [], 
+        lastCPHeight: 0, voidLevel: 500, hellMode: false,
         confetti: [], floating: [], raf: null
     };
 
     const player = {
-        x: 2500, y: 19800, vx: 0, vy: 0, w: 50, h: 50,
+        x: 2500, y: 0, vx: 0, vy: 0, w: 50, h: 50,
         facing: 1, walk: 0, jumps: 0, maxJumps: 2, onG: false,
-        lastSafeX: 2500, lastSafeY: 19800
+        lastSafeX: 2500, lastSafeY: 0
     };
 
     const Q_BANK = [
@@ -1082,12 +1077,10 @@
         const ozoneBonus = SHOP_ITEMS.ozone.getEffect(gameSave.upgrades.ozone);
         const albedoBonus = SHOP_ITEMS.albedo.getEffect(gameSave.upgrades.albedo);
 
-        // 1. The Starting Ground Platform
         game.platforms.push({x: 2350, y: 150, w: 300 + magnetBonus, h: 50, color: '#2ecc71'});
         
         let cy = 0, lastX = 2500; 
         for(let i=0; i < 1500; i++) {
-            // 2. Altitude is now just the absolute value of cy divided by 10
             let alt = Math.abs(Math.floor(cy / 10)); 
             let isHell = alt > (9000 + albedoBonus);
             let isFinal = alt >= 10000;
@@ -1097,7 +1090,6 @@
             pW += magnetBonus; 
             if(isCP) pW += ozoneBonus;
 
-            // 3. Move cy into the negatives (climbing up the canvas)
             let verticalGap = (isHell) ? 210 : (150 + Math.random() * 80);
             let drift = isHell ? 350 : 550;
             let rx = isFinal ? 2300 : lastX + (Math.random() * (drift * 2) - drift);
@@ -1111,7 +1103,7 @@
 
             if(isFinal) break; 
             lastX = rx; 
-            cy -= verticalGap; // Subtracting moves the next platform HIGHER
+            cy -= verticalGap; 
         }
     }
 
@@ -1128,6 +1120,7 @@
         document.getElementById('fuel-max-num').innerText = Math.floor(game.maxEnergy);
         
         game.camY = -300; player.y = 0; game.voidLevel = 500; player.x = 2500; player.vx = 0; player.vy = 0;
+        game.lastCPHeight = 0; player.lastSafeX = 2500; player.lastSafeY = 0;
         game.hellMode = false; document.getElementById('app').style.background = 'var(--jim-sky)';
         document.getElementById('vignette').style.opacity = '0';
 
@@ -1179,7 +1172,6 @@
 
         player.maxJumps = 2 + kelpMod;
 
-        // --- HELL ZONE TRIGGER AT 9000m ---
         if (game.score >= (9000 + albedoMod) && !game.hellMode) {
             game.hellMode = true;
             document.getElementById('app').style.background = 'var(--jim-hell)'; 
@@ -1202,7 +1194,6 @@
             
             if(Math.random() < 0.05 && scrubMod > 0) addCredits(scrubMod * greenMod);
         } else { 
-            // INSTANT STOP NO SLIDE, NO IDLE DRAIN
             player.vx = player.onG ? 0 : player.vx * 0.95; 
             player.walk = 0; 
         }
@@ -1214,7 +1205,6 @@
         player.vx = Math.min(Math.max(player.vx, -lim), lim);
         player.x += player.vx; 
         
-        // ORIGINAL GRAVITY
         player.vy += (0.8 - hovMod); 
         player.y += player.vy;
         player.onG = false;
@@ -1232,7 +1222,7 @@
                     game.active = false; doConfetti(); document.getElementById('win-screen').style.display = 'flex';
                 }
 
-                let cur = Math.abs(Math.floor((player.y - 19800)/10));
+                let cur = Math.abs(Math.floor(player.y / 10));
                 if (cur >= game.lastCPHeight + 500) {
                     game.lastCPHeight = Math.floor(cur / 500) * 500;
                     player.lastSafeX = p.x + p.w/2; player.lastSafeY = p.y;
@@ -1243,7 +1233,6 @@
             }
         });
 
-        // ORIGINAL JUMP FORCE
         const jump = game.keys['ArrowUp'] || game.keys['Space'] || game.keys['KeyW'];
         if(jump && !game.keys.locked) {
             let cost = 0;

@@ -506,6 +506,19 @@
     <div id="checkpoint-toast">CHECKPOINT!</div>
     <div id="credit-toast">+50 CREDITS</div>
 
+    <div id="auth-overlay" class="overlay" style="display: flex; background: rgba(0,0,0,0.9);">
+    <div class="glass-ui" style="padding: 40px; border-radius: 30px; width: 400px; text-align: center;">
+        <h2 style="font-family:'Bungee';">PILOT LOGIN</h2>
+        <input type="text" id="auth-user" placeholder="USERNAME" style="width: 80%; padding: 10px; margin: 10px; border-radius: 10px; border: none;">
+        <input type="password" id="auth-pass" placeholder="PASSWORD" style="width: 80%; padding: 10px; margin: 10px; border-radius: 10px; border: none;">
+        <div style="margin-top: 20px;">
+            <button class="instr-btn" onclick="handleAuth('signin')" style="padding: 10px 30px;">SIGN IN</button>
+            <button class="instr-btn" onclick="handleAuth('signup')" style="padding: 10px 30px; background: var(--jim-blue); color: black;">SIGN UP</button>
+        </div>
+        <p id="auth-msg" style="color: var(--jim-red); margin-top: 15px; font-weight: bold;"></p>
+    </div>
+</div>
+
     <div id="start-menu" class="overlay">
         <h1 class="logo">japa jump</h1>
         <p style="color: white; font-weight: 900; letter-spacing: 4px; opacity: 0.9;">SDG 13: CLIMATE ACTION</p>
@@ -591,6 +604,45 @@
 
 <script>
     const SAVE_KEY = 'japa_jump_v5_save';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyx7Lvqtf8-3zEmHQbK4gqGD6o-1zy7AY4DC7Fugw2GqoLQpnaftnAv7nOLVs4PptJPCA/exec'; // PASTE YOUR URL HERE
+let currentUser = null;
+
+async function handleAuth(action) {
+    const user = document.getElementById('auth-user').value;
+    const pass = document.getElementById('auth-pass').value;
+    const msg = document.getElementById('auth-msg');
+
+    if (!user || !pass) { msg.innerText = "FILL ALL FIELDS"; return; }
+    
+    msg.innerText = "CONNECTING...";
+    
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action, username: user, password: pass })
+        });
+        const result = await response.text();
+
+        if (result === "success") {
+            msg.style.color = "var(--jim-green)";
+            msg.innerText = "ACCOUNT CREATED! NOW SIGN IN.";
+        } else if (result === "exists") {
+            msg.innerText = "USERNAME TAKEN";
+        } else if (result === "fail") {
+            msg.innerText = "WRONG CREDENTIALS";
+        } else {
+            // Success Sign In - 'result' is the highscore from the sheet
+            currentUser = user;
+            gameSave.highscore = parseInt(result) || 0;
+            document.getElementById('auth-overlay').style.display = 'none';
+            saveGame(); // Sync local data
+        }
+    } catch (e) {
+        msg.innerText = "SERVER ERROR";
+        console.error(e);
+    }
+}
+
     
     const DEFAULT_SAVE = {
         highscore: 0,

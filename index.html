@@ -1505,8 +1505,8 @@
             let alt = Math.max(0, Math.floor(-cy / 10)); 
             let isHell = alt > (9000 + albedoBonus);
             let isFinal = alt >= 10000;
-            let isCP = alt > 0 && alt % 500 === 0;
-            
+            let isCP = alt > 0 && Math.abs(alt % 500) < 15 && !game.platforms.some(p => p.isCP && Math.abs(Math.floor(-p.y/10) - alt) < 100);
+         
             let pW = isFinal ? 400 : (isHell ? (45 + Math.random() * 10) : (80 + Math.random() * 30));
             pW += magnetBonus; 
             if(isCP) pW += ozoneBonus;
@@ -2104,8 +2104,7 @@
                     
                     setTimeout(() => { 
 
-                        player.x = player.lastSafeX - 25; 
-                        player.y = player.lastSafeY - 60;
+                        
                         player.vx = 0; 
                         player.vy = 0;
                      

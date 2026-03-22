@@ -503,6 +503,9 @@
     </style>
 </head>
 <body>
+ <audio id="bg-music" loop>
+    <source src="gimkit.mp3" type="audio/mpeg">
+</audio>
 
 <div id="app">
     <div id="vignette"></div>
@@ -655,6 +658,13 @@
        MODULE 1: AUDIO SYNTHESIZER ENGINE
        ========================================================================= */
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function startMusic() {
+        const music = document.getElementById('bg-music');
+        music.volume = 0.3; 
+        music.play().catch(err => console.log("Waiting for user to click..."));
+    }
+ 
     
     const SoundEngine = {
         playTone: function(freq, type, duration, vol=0.1, slideFreq=null) {
@@ -785,6 +795,7 @@
                 localStorage.setItem('remembered_user', user); localStorage.setItem('remembered_pass', pass);
                 const parts = result.split("|");
                 currentUser = user;
+               startMusic();
                 gameSave.highscore = parseInt(parts[0]);
                 gameSave.credits = parseFloat(parts[1]);
                 // 1. Calculate the nearest 500m checkpoint (e.g., 4430 becomes 4000)
@@ -793,6 +804,10 @@
                 // 2. Teleport to that specific checkpoint height
                 player.y = (savedCheckpoint * -10); 
                 player.lastSafeY = player.y;
+               generateLevel();
+
+                game.platforms.push({ x: player.x - 175, y: player.y + 50, w: 400, h: 40, color: '#2ecc71', isCP: true });
+             
                 game.camY = player.y - 300; // Snaps camera so you aren't looking at the ground
                 player.onG = true;          // Prevents the "falling" glitch on login
 

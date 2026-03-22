@@ -659,11 +659,13 @@
        ========================================================================= */
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function startMusic() {
-        const music = document.getElementById('bg-music');
-        music.volume = 0.3; 
-        music.play().catch(err => console.log("Waiting for user to click..."));
-    }
+             function startMusic() {
+         const music = document.getElementById('bg-music');
+         if (music) {
+             music.volume = 0.25; // Lower volume makes the jump sounds clearer
+             music.play().catch(err => console.log("Music blocked by browser settings."));
+         }
+     }
  
     
     const SoundEngine = {
@@ -708,13 +710,14 @@
     };
 
     // Unlock audio context on first interaction as browsers require it
-        document.body.addEventListener('click', () => { 
-         if(audioCtx && audioCtx.state === 'suspended') {
-             audioCtx.resume();
-             // This ensures the music starts exactly when the user first interacts
-             startMusic(); 
-         }
-     }, {once:true});
+              document.body.addEventListener('click', () => { 
+          if(audioCtx.state === 'suspended') {
+              audioCtx.resume().then(() => {
+                  console.log("Audio Context Active");
+                  startMusic(); 
+              });
+          }
+      }, {once:true});
 
     /* =========================================================================
        MODULE 2: NETWORK & CLOUD SYNC (Google Apps Script Backend)

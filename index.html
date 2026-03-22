@@ -786,8 +786,11 @@
                 currentUser = user;
                 gameSave.highscore = parseInt(parts[0]);
                 gameSave.credits = parseFloat(parts[1]);
+                player.y = (gameSave.highscore * -10); // Teleports player to highscore height
+                player.lastSafeY = player.y;   
+                game.camY = player.y - 300; // Snaps camera to player height// Sets respawn point to that height
                 
-                const cloudInv = JSON.parse(parts[2]);
+                 const cloudInv = JSON.parse(parts[2]);
                 if (cloudInv.upgrades) gameSave.upgrades = cloudInv.upgrades;
                 if (cloudInv.skins) gameSave.skins = cloudInv.skins;
                 if (cloudInv.achievements) gameSave.achievements = cloudInv.achievements;

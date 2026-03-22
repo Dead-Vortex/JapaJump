@@ -2076,29 +2076,36 @@
         });
     }
 
-                       const j = document.getElementById('joy'), mj = document.getElementById('m-jump');
-            
-            j.addEventListener('touchmove', (e) => {
-                let r = j.getBoundingClientRect();
-                let x = (e.touches[0].clientX - (r.left + r.width/2)) / (r.width/2);
-                game.keys['KeyA'] = x < -0.2; 
-                game.keys['KeyD'] = x > 0.2;
-            }, {passive: false});
-            
-            j.addEventListener('touchend', () => { 
-                game.keys['KeyA'] = false; 
-                game.keys['KeyD'] = false; 
-            });
-            
-            mj.addEventListener('touchstart', (e) => { 
-                e.preventDefault(); 
-                game.keys['Space'] = true; 
-            }, {passive: false});
-            
-            mj.addEventListener('touchend', () => { 
-                game.keys['Space'] = false; 
-                game.keys.locked = false; 
-            });
+                 const j = document.getElementById('joy'), mj = document.getElementById('m-jump');
+                
+                j.addEventListener('touchmove', (e) => {
+                    let r = j.getBoundingClientRect();
+                    let x = (e.touches[0].clientX - (r.left + r.width/2)) / (r.width/2);
+                    
+                    // SENSITIVITY FIX: 0.1 deadzone makes it feel much faster
+                    game.keys['KeyA'] = x < -0.1; 
+                    game.keys['KeyD'] = x > 0.1;
+                    
+                    // VISUAL FEEDBACK: The button now slides under your thumb
+                    let visualX = Math.max(-1, Math.min(1, x)) * 30;
+                    j.style.transform = `translateX(${visualX}px)`;
+                }, {passive: false});
+                
+                j.addEventListener('touchend', () => { 
+                    game.keys['KeyA'] = false; 
+                    game.keys['KeyD'] = false; 
+                    j.style.transform = `translateX(0px)`; // Snaps back to center
+                });
+                
+                mj.addEventListener('touchstart', (e) => { 
+                    e.preventDefault(); 
+                    game.keys['Space'] = true; 
+                }, {passive: false});
+                
+                mj.addEventListener('touchend', () => { 
+                    game.keys['Space'] = false; 
+                    game.keys.locked = false; 
+                });
     // INIT
     updateHUDValues();
 

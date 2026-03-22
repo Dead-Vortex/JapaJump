@@ -708,9 +708,13 @@
     };
 
     // Unlock audio context on first interaction as browsers require it
-    document.body.addEventListener('click', () => { 
-        if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); 
-    }, {once:true});
+        document.body.addEventListener('click', () => { 
+         if(audioCtx && audioCtx.state === 'suspended') {
+             audioCtx.resume();
+             // This ensures the music starts exactly when the user first interacts
+             startMusic(); 
+         }
+     }, {once:true});
 
     /* =========================================================================
        MODULE 2: NETWORK & CLOUD SYNC (Google Apps Script Backend)
@@ -795,7 +799,6 @@
                 localStorage.setItem('remembered_user', user); localStorage.setItem('remembered_pass', pass);
                 const parts = result.split("|");
                 currentUser = user;
-               startMusic();
                 gameSave.highscore = parseInt(parts[0]);
                 gameSave.credits = parseFloat(parts[1]);
                 // 1. Calculate the nearest 500m checkpoint (e.g., 4430 becomes 4000)

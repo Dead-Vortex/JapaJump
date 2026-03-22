@@ -649,7 +649,6 @@
         <div id="m-jump" class="m-btn" style="background:var(--jim-blue)">JUMP</div>
     </div>
 
- <button onclick="player.x = player.lastSafeX; player.y = player.lastSafeY - 100; player.vy = 0; game.camY = player.y - 300;" style="position:fixed; bottom:20px; left:20px; z-index:10001; padding:15px; background:var(--jim-blue); color:white; font-family:'Bungee'; border:2px solid white; border-radius:12px; cursor:pointer;">SPAWN TO CHECKPOINT</button>
     
 </div>
 
@@ -805,22 +804,6 @@
                 currentUser = user;
                 gameSave.highscore = parseInt(parts[0]);
                 gameSave.credits = parseFloat(parts[1]);
-                // 1. Calculate the nearest 500m checkpoint (e.g., 4430 becomes 4000)
-                let savedCheckpoint = Math.floor(parseInt(parts[0]) / 500) * 500;
-                
-                // 2. Teleport to that specific checkpoint height
-                player.y = (savedCheckpoint * -10); 
-                player.lastSafeY = player.y;
-               generateLevel();
-
-                game.platforms.push({ x: player.x - 175, y: player.y + 50, w: 400, h: 40, color: '#2ecc71', isCP: true });
-             
-                game.camY = player.y - 300; // Snaps camera so you aren't looking at the ground
-                player.onG = true;          // Prevents the "falling" glitch on login
-
-// 3. Update the HUD so it shows the right zone
-                document.getElementById('zone-val').innerText = savedCheckpoint + "m";// Snaps camera to player height// Sets respawn point to that height
-                generateLevel(); 
 
                 hideScreen('auth-overlay'); 
                 showScreen('start-menu');
@@ -1740,12 +1723,12 @@
                 // CHECKPOINT LOGIC (FIXED: Only updates if higher)
                 let cur = Math.max(0, Math.floor(-player.y / 10));
                 if (p.isCP && cur > game.lastCPHeight) {
+                    p.isCP = false; // Deactivates this platform's checkpoint status after triggering
                     game.lastCPHeight = Math.floor(cur / 500) * 500;
                     player.lastSafeX = p.x + p.w / 2; 
                     player.lastSafeY = p.y;
-                    game.voidLevel = p.y + 800; 
-
-                    game.voidLevel = p.y + 800;
+                    game.voidLevel = p.y + 1000; // Resets the death floor relative to your new checkpoint
+                    
                     
                     triggerCPToast(game.lastCPHeight);
                     SoundEngine.checkpoint();
@@ -1969,6 +1952,7 @@
                 ctx.fillStyle = "rgba(0, 255, 204, 0.2)";
                 ctx.fillRect(sx, sy - 100, o.w, 100); 
             }
+           if (o.isCP && !o.isFinal && Math.max(0, Math.floor(-o.y / 10)) > game.lastCPHeight) { ctx.font = "24px serif"; ctx.fillText("🚩", sx + o.w/2 - 10 + Math.sin(Date.now()/200)*5, sy - 10); }   
         });
         
         // DRAW PLAYER SKINS

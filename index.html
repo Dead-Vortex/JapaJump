@@ -786,9 +786,20 @@
                 currentUser = user;
                 gameSave.highscore = parseInt(parts[0]);
                 gameSave.credits = parseFloat(parts[1]);
-                player.y = (gameSave.highscore * -10); // Teleports player to highscore height
-                player.lastSafeY = player.y;   
-                game.camY = player.y - 300; // Snaps camera to player height// Sets respawn point to that height
+                // 1. Calculate the nearest 500m checkpoint (e.g., 4430 becomes 4000)
+                let savedCheckpoint = Math.floor(parseInt(parts[0]) / 500) * 500;
+                
+                // 2. Teleport to that specific checkpoint height
+                player.y = (savedCheckpoint * -10); 
+                player.lastSafeY = player.y;
+                game.camY = player.y - 300;
+
+// 3. Update the HUD so it shows the right zone
+                document.getElementById('zone-val').innerText = savedCheckpoint + "m";// Snaps camera to player height// Sets respawn point to that height
+                generateLevel(); 
+
+                hideScreen('auth-overlay'); 
+                showScreen('start-menu');
                 
                  const cloudInv = JSON.parse(parts[2]);
                 if (cloudInv.upgrades) gameSave.upgrades = cloudInv.upgrades;

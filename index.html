@@ -706,6 +706,7 @@
                 SoundEngine.coin(); 
             }
             else if (result.includes("|")) {
+                localStorage.setItem('remembered_user', user); localStorage.setItem('remembered_pass', pass);
                 const parts = result.split("|");
                 currentUser = user;
                 gameSave.highscore = parseInt(parts[0]);
@@ -1999,6 +2000,7 @@
 
     // INIT
     updateHUDValues();
+    window.onload = () => { document.getElementById('auth-user').value = localStorage.getItem('remembered_user') || ''; document.getElementById('auth-pass').value = localStorage.getItem('remembered_pass') || ''; };
 
 </script>
 </body>

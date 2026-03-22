@@ -1871,7 +1871,6 @@
         
         // QUANTUM RADAR IMPLEMENTATION
         const radarZoom = SHOP_ITEMS.radar.getEffect(gameSave.upgrades.radar);
-        const radarZoom = 0.6 - (gameSave.upgrades.radar * 0.05);
         
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -2100,19 +2099,34 @@
 
                  const j = document.getElementById('joy'), mj = document.getElementById('m-jump');
                 
-                            j.addEventListener('touchmove', (e) => {
-                let r = j.getBoundingClientRect();
-                let x = (e.touches[0].clientX - (r.left + r.width/2)) / (r.width/2);
+                j.addEventListener('touchmove', (e) => {
+                    let r = j.getBoundingClientRect();
+                    let x = (e.touches[0].clientX - (r.left + r.width/2)) / (r.width/2);
+                    
+                    // SENSITIVITY FIX: 0.1 deadzone makes it feel much faster
+                    game.keys['KeyA'] = x < -0.1; 
+                    game.keys['KeyD'] = x > 0.1;
+                    
+                    // VISUAL FEEDBACK: The button now slides under your thumb
+                    let visualX = Math.max(-1, Math.min(1, x)) * 30;
+                    j.style.transform = `translateX(${visualX}px)`;
+                }, {passive: false});
                 
-                // DESENSITIZE: Increased deadzone from 0.1 to 0.35. 
-                // You have to slide further to actually move.
-                game.keys['KeyA'] = x < -0.35; 
-                game.keys['KeyD'] = x > 0.35;
+                j.addEventListener('touchend', () => { 
+                    game.keys['KeyA'] = false; 
+                    game.keys['KeyD'] = false; 
+                    j.style.transform = `translateX(0px)`; // Snaps back to center
+                });
                 
-                // Subtle visual feedback (less "jittery")
-                let visualX = Math.max(-0.6, Math.min(0.6, x)) * 20;
-                j.style.transform = `translateX(${visualX}px)`;
-            }, {passive: false});
+                mj.addEventListener('touchstart', (e) => { 
+                    e.preventDefault(); 
+                    game.keys['Space'] = true; 
+                }, {passive: false});
+                
+                mj.addEventListener('touchend', () => { 
+                    game.keys['Space'] = false; 
+                    game.keys.locked = false; 
+                });
     // INIT
     updateHUDValues();
 

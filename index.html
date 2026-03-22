@@ -1160,7 +1160,8 @@
         return Math.floor(item.baseCost * Math.pow(item.costMult, tier));
     }
 
-    function buyItem(id) {
+    // FIX: Added 'async' keyword here to resolve the SyntaxError causing the crash.
+    async function buyItem(id) {
         if (shopTab === 'skins') {
             if (gameSave.skins.unlocked.includes(id)) {
                 gameSave.skins.equipped = id; 

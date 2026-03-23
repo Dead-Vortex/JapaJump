@@ -2098,9 +2098,7 @@
             }
         });
 
-        // DRAW MULTIPLAYER GHOSTS
-        // DRAW MULTIPLAYER GHOSTS (HIGH FIDELITY)
-        // 1. DRAW MULTIPLAYER GHOSTS (World Space - Moves with Camera)
+        /// DRAW MULTIPLAYER GHOSTS (World Space)
         Object.values(otherPlayers).forEach(p => {
             if(Math.abs(p.x - player.x) > 1500 || Math.abs(p.y - player.y) > 1000) return; 
 
@@ -2113,80 +2111,28 @@
 
             // Ghost Body
             ctx.fillStyle = game.hellMode && ghostSkin.n === 'Standard' ? "#1a1a1a" : ghostSkin.c;
-            ctx.beginPath();
-            ctx.roundRect(-25, -25, 50, 50, 12);
-            ctx.fill();
-
-            // Ghost Visor & Eyes
-            ctx.fillStyle = "#222";
-            ctx.fillRect(-28, -28, 56, 18); 
-            ctx.fillStyle = ghostSkin.a;
-            ctx.fillRect(10, -5, 8, 8);
-            ctx.fillRect(25, -5, 8, 8);
-
-            // Ghost Legs (Animated)
-            let leg = Math.sin(p.walk || 0) * 15;
-            ctx.fillStyle = "#111";
-            ctx.fillRect(-18, 18, 14, 15 + leg);
-            ctx.fillRect(4, 18, 14, 15 - leg);
-            ctx.restore();
-
-            // Floating Name Tag (Above Player)
-            ctx.fillStyle = "white";
-            ctx.font = "bold 14px Bungee";
-            ctx.textAlign = "center";
-            ctx.fillText(p.id.toUpperCase(), p.x - game.camX + 25, p.y - game.camY - 10);
-        });
-
-        // 2. DRAW MINI LEADERBOARD (Screen Space - Stays in Corner)
-        ctx.save();
-        ctx.resetTransform(); // This "unsticks" the leaderboard from the camera
-        ctx.fillStyle = "rgba(0,0,0,0.6)"; 
-        ctx.beginPath();
-        ctx.roundRect(canvas.width - 220, 100, 200, 140, 15); ctx.fill();
-        
-        ctx.fillStyle = "var(--jim-gold)"; ctx.font = "bold 12px Bungee";
-        ctx.textAlign = "left";
-        ctx.fillText("LIVE TOWER RANK", canvas.width - 205, 125);
-
-        let leaderboard = Object.values(otherPlayers)
-            .map(p => ({id: p.id, score: p.score || 0}))
-            .concat([{id: currentUser, score: game.score}]);
-            
-        leaderboard.sort((a,b) => b.score - a.score).slice(0, 5).forEach((p, i) => {
-            ctx.fillStyle = (p.id === currentUser) ? "var(--jim-blue)" : "white";
-            ctx.font = "11px Inter";
-            ctx.fillText(`${i+1}. ${p.id.toUpperCase()}`, canvas.width - 205, 150 + i*18);
-            ctx.textAlign = "right";
-            ctx.fillText(`${p.score}m`, canvas.width - 35, 150 + i*18);
-            ctx.textAlign = "left";
-        });
-        ctx.restore();
-
-            // Draw Body
-            ctx.fillStyle = game.hellMode && ghostSkin.n === 'Standard' ? "#1a1a1a" : ghostSkin.c;
             if(p.skin === 'void') { ctx.strokeStyle='white'; ctx.lineWidth=2; }
             ctx.beginPath();
             ctx.roundRect(-25, -25, 50, 50, 12);
             ctx.fill();
             if(p.skin === 'void') ctx.stroke();
 
-            // Draw Visor
+            // Ghost Visor
             ctx.fillStyle = game.hellMode && ghostSkin.n === 'Standard' ? "#800" : (ghostSkin.n === 'Standard' ? "#FF9800" : "#222");
             ctx.fillRect(-28, -28, 56, 18); 
 
-            // Draw Animated Legs
+            // Ghost Legs (Animated)
             let leg = Math.sin(p.walk || 0) * 15;
             ctx.fillStyle = "#111";
             ctx.fillRect(-18, 18, 14, 15 + leg);
             ctx.fillRect(4, 18, 14, 15 - leg);
 
-            // Draw Eyes
+            // Ghost Eyes
             ctx.fillStyle = game.hellMode && ghostSkin.n === 'Standard' ? "red" : ghostSkin.a;
             ctx.fillRect(10, -5, 8, 8);
             ctx.fillRect(25, -5, 8, 8);
 
-            // Draw Thruster Flames (If they are jumping)
+            // Thruster Flames
             if(p.thrusting) {
                 ctx.fillStyle = "rgba(0, 210, 255, 0.7)";
                 ctx.beginPath();
@@ -2197,19 +2143,43 @@
             }
             ctx.restore();
 
-            // Draw Floating Username (Separate block so the text doesn't flip backwards)
+            // Floating Name Tag
             ctx.save();
             ctx.translate(p.x - game.camX + 25, p.y - game.camY + 25);
-            ctx.globalAlpha = 1.0;
             ctx.fillStyle = "white";
             ctx.font = "bold 14px Bungee";
+            ctx.textAlign = "center";
             ctx.shadowBlur = 5;
             ctx.shadowColor = "black";
-            ctx.textAlign = "center";
             ctx.fillText(p.id.toUpperCase(), 0, -35); 
             ctx.restore();
         });
-        ctx.restore(); 
+
+        ctx.restore(); // Closes the Radar/Camera transform
+
+        // DRAW MINI LEADERBOARD (Screen Space - Outside Radar Zoom)
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.6)"; 
+        ctx.beginPath();
+        ctx.roundRect(canvas.width - 220, 100, 200, 140, 15); ctx.fill();
+        
+        ctx.fillStyle = "var(--jim-gold)"; ctx.font = "bold 12px Bungee";
+        ctx.textAlign = "left";
+        ctx.fillText("LIVE TOWER RANK", canvas.width - 205, 125);
+
+        let leaderboard = Object.values(otherPlayers)
+            .map(p => ({id: p.id, score: p.score || 0}))
+            .concat([{id: currentUser || "YOU", score: game.score}]);
+            
+        leaderboard.sort((a,b) => b.score - a.score).slice(0, 5).forEach((p, i) => {
+            ctx.fillStyle = (p.id === currentUser) ? "var(--jim-blue)" : "white";
+            ctx.font = "11px Inter";
+            ctx.fillText(`${i+1}. ${p.id.toUpperCase()}`, canvas.width - 205, 150 + i*18);
+            ctx.textAlign = "right";
+            ctx.fillText(`${p.score}m`, canvas.width - 35, 150 + i*18);
+            ctx.textAlign = "left";
+        });
+        ctx.restore();
 
         // UPDATE HTML HUD
         document.getElementById('alt-val').innerText = game.score + 'm';

@@ -1834,12 +1834,16 @@
         });
 
         // Blast your live coordinates to the server
+        // Blast your FULL live coordinates & animations to the server
         if (ws.readyState === WebSocket.OPEN && currentUser && game.active) {
             ws.send(JSON.stringify({
                 id: currentUser, 
                 x: player.x, 
                 y: player.y, 
-                skin: gameSave.skins.equipped 
+                skin: gameSave.skins.equipped,
+                facing: player.facing,
+                walk: player.walk,
+                thrusting: (gameSave.upgrades.thrusters > 0 && !player.onG)
             }));
         }
         // SCORE & SAVE
@@ -2069,22 +2073,54 @@
         });
 
         // DRAW MULTIPLAYER GHOSTS
+        // DRAW MULTIPLAYER GHOSTS (HIGH FIDELITY)
         Object.values(otherPlayers).forEach(p => {
-            // Only draw if they are on screen to save CPU
             if(Math.abs(p.x - player.x) > 1500 || Math.abs(p.y - player.y) > 1000) return; 
 
             ctx.save();
             ctx.translate(p.x - game.camX + 25, p.y - game.camY + 25);
+            ctx.scale(p.facing || 1, 1); // Flips them if they look left
             
-            // Draw Ghost Body
             let ghostSkin = SKINS[p.skin] || SKINS['default'];
-            ctx.fillStyle = ghostSkin.c;
-            ctx.globalAlpha = 0.5; // Make them slightly see-through
+            ctx.globalAlpha = 0.6; // Slightly transparent so you know it's a ghost
+
+            // Draw Body
+            ctx.fillStyle = game.hellMode && ghostSkin.n === 'Standard' ? "#1a1a1a" : ghostSkin.c;
+            if(p.skin === 'void') { ctx.strokeStyle='white'; ctx.lineWidth=2; }
             ctx.beginPath();
             ctx.roundRect(-25, -25, 50, 50, 12);
             ctx.fill();
-            
-            // Draw Floating Username
+            if(p.skin === 'void') ctx.stroke();
+
+            // Draw Visor
+            ctx.fillStyle = game.hellMode && ghostSkin.n === 'Standard' ? "#800" : (ghostSkin.n === 'Standard' ? "#FF9800" : "#222");
+            ctx.fillRect(-28, -28, 56, 18); 
+
+            // Draw Animated Legs
+            let leg = Math.sin(p.walk || 0) * 15;
+            ctx.fillStyle = "#111";
+            ctx.fillRect(-18, 18, 14, 15 + leg);
+            ctx.fillRect(4, 18, 14, 15 - leg);
+
+            // Draw Eyes
+            ctx.fillStyle = game.hellMode && ghostSkin.n === 'Standard' ? "red" : ghostSkin.a;
+            ctx.fillRect(10, -5, 8, 8);
+            ctx.fillRect(25, -5, 8, 8);
+
+            // Draw Thruster Flames (If they are jumping)
+            if(p.thrusting) {
+                ctx.fillStyle = "rgba(0, 210, 255, 0.7)";
+                ctx.beginPath();
+                ctx.moveTo(-15, 25);
+                ctx.lineTo(-5, 45 + Math.random()*20);
+                ctx.lineTo(5, 25);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // Draw Floating Username (Separate block so the text doesn't flip backwards)
+            ctx.save();
+            ctx.translate(p.x - game.camX + 25, p.y - game.camY + 25);
             ctx.globalAlpha = 1.0;
             ctx.fillStyle = "white";
             ctx.font = "bold 14px Bungee";

@@ -17,7 +17,9 @@
 </p>
 
 <div align="center">
-  <video src="jump.mp4" autoplay loop muted playsinline width="75%" style="border-radius: 15px; border: 4px solid #00d2ff; box-shadow: 0 0 25px #00d2ff; margin-bottom: 20px;"></video>
+  <video autoplay loop muted playsinline style="border-radius: 15px; border: 4px solid #00d2ff; box-shadow: 0 0 25px #00d2ff; width: 75%; margin-bottom: 20px;">
+    <source src="jump.mp4" type="video/mp4">
+  </video>
 </div>
 
 <marquee scrollamount="20" direction="left" style="background: #000; border-top: 2px solid #ff4b2b; border-bottom: 2px solid #ff4b2b; padding: 10px 0;">

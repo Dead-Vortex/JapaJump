@@ -1513,9 +1513,13 @@
     }
 
     function generateLevel() {
-        // Shared Seed: If online, everyone gets Seed 123. If alone, random.
-        let seed = Object.keys(otherPlayers).length > 0 ? 123 : Math.random();
-        let rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+            let seed = Object.values(otherPlayers).length > 0 ? 12345 : Math.random() * 10000;
+        
+        // This math function makes "random" numbers that are the SAME for everyone
+        let rnd = () => { 
+            seed = (seed * 16807) % 2147483647; 
+            return seed / 2147483647; 
+        };
         
         game.platforms = [];
         const magnetBonus = SHOP_ITEMS.magnet.getEffect(gameSave.upgrades.magnet);
@@ -1861,17 +1865,19 @@
 
         // Blast your live coordinates to the server
         // Blast your FULL live coordinates & animations to the server
-        if (ws.readyState === WebSocket.OPEN && currentUser && game.active) {
-            ws.send(JSON.stringify({
-                id: currentUser, 
-                x: player.x, 
-                y: player.y, 
-                skin: gameSave.skins.equipped,
-                facing: player.facing,
-                walk: player.walk,
-                thrusting: (gameSave.upgrades.thrusters > 0 && !player.onG)
-            }));
-        }
+       // Inside your update() function
+         if (ws.readyState === WebSocket.OPEN && currentUser && game.active) {
+             ws.send(JSON.stringify({
+                 id: currentUser, 
+                 x: player.x, 
+                 y: player.y, 
+                 score: game.score, // <--- ADD THIS LINE
+                 skin: gameSave.skins.equipped,
+                 facing: player.facing,
+                 walk: player.walk,
+                 thrusting: (gameSave.upgrades.thrusters > 0 && !player.onG)
+             }));
+         }
         // SCORE & SAVE
         game.score = Math.max(0, Math.floor(-player.y / 10));
         if(game.score > gameSave.highscore) { 
@@ -2167,9 +2173,12 @@
         ctx.textAlign = "left";
         ctx.fillText("LIVE TOWER RANK", canvas.width - 205, 125);
 
-        let leaderboard = Object.values(otherPlayers)
-            .map(p => ({id: p.id, score: p.score || 0}))
-            .concat([{id: currentUser || "YOU", score: game.score}]);
+            let leaderboard = Object.values(otherPlayers)
+        .map(p => ({
+            id: p.id, 
+            score: p.score || 0 // This matches the "score" we just added to the broadcast
+        }))
+        .concat([{id: currentUser || "YOU", score: game.score}]);
             
         leaderboard.sort((a,b) => b.score - a.score).slice(0, 5).forEach((p, i) => {
             ctx.fillStyle = (p.id === currentUser) ? "var(--jim-blue)" : "white";

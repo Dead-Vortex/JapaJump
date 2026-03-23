@@ -660,12 +660,12 @@
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
              function startMusic() {
-         const music = document.getElementById('bg-music');
-         if (music) {
-             music.volume = 0.25; // Lower volume makes the jump sounds clearer
-             music.play().catch(err => console.log("Music blocked by browser settings."));
-         }
-     }
+    const music = document.getElementById('bg-music');
+    if (music && music.paused) {
+        music.volume = 0.20; // Set volume to 20%
+        music.play().catch(err => console.log("Music waiting for interaction."));
+    }
+}
  
     
     const SoundEngine = {
@@ -710,14 +710,13 @@
     };
 
     // Unlock audio context on first interaction as browsers require it
-              document.body.addEventListener('click', () => { 
+              // Unlock audio on first interaction
+      document.body.addEventListener('click', () => { 
           if(audioCtx.state === 'suspended') {
-              audioCtx.resume().then(() => {
-                  console.log("Audio Context Active");
-                  startMusic(); 
-              });
+              audioCtx.resume();
           }
-      }, {once:true});
+          startMusic(); // This triggers the gimkit.mp3
+      }, {once: true});
 
     /* =========================================================================
        MODULE 2: NETWORK & CLOUD SYNC (Google Apps Script Backend)

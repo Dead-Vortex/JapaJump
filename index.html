@@ -729,22 +729,22 @@
         let otherPlayers = {};
     // REPLACE THE URL BELOW WITH YOUR RENDER URL (Make sure it starts with wss://)
     const ws = new WebSocket('wss://japa-server.onrender.com');    
-       ws.onmessage = (e) => {
-        let p = JSON.parse(e.data); // 1. Parse the data FIRST
     
-        // 2. Now check if it's a chat message
-                     if (p.type === 'chat') {
-         // Increased life to 3.0 (3 seconds)
-         game.floaters.push({ text: `${p.id}: ${p.text}`, c: '#FFD700', x: p.x, y: p.y - 80, life: 3.0, vy: -1 });
-         SoundEngine.coin();
-         return;
-    }
-    
-        // 3. Otherwise, update the player's ghost position
-        if (p.id && p.id !== currentUser) {
-            otherPlayers[p.id] = p; 
-            otherPlayers[p.id].lastSeen = Date.now();
-        }
+    ws.onopen = () => console.log("CONNECTED TO SATELLITE");
+    ws.onerror = (err) => console.log("SIGNAL LOST", err);
+
+    ws.onmessage = (e) => {
+        try {
+            let p = JSON.parse(e.data);
+            if (p.type === 'chat') {
+                game.floaters.push({ text: `${p.id}: ${p.text}`, c: '#FFD700', x: p.x, y: p.y - 80, life: 3.0, vy: -1 });
+                return;
+            }
+            if (p.id && p.id !== currentUser) {
+                otherPlayers[p.id] = p; 
+                otherPlayers[p.id].lastSeen = Date.now();
+            }
+        } catch(err) { console.log("Garbage data received"); }
     };
     let scoreSyncInterval = null;
 
@@ -1560,31 +1560,32 @@
 }
 
     function beginGame() {
-    // 1. FORCE FULLSCREEN & LANDSCAPE
+    // 1. UI & ORIENTATION FIX
     const docElm = document.documentElement;
-    if (docElm.requestFullscreen) {
-        docElm.requestFullscreen();
-    } else if (docElm.webkitRequestFullscreen) {
-        docElm.webkitRequestFullscreen(); // Safari/iOS
-    } else if (docElm.msRequestFullscreen) {
-        docElm.msRequestFullscreen();
-    }
+    if (docElm.requestFullscreen) { docElm.requestFullscreen(); }
+    else if (docElm.webkitRequestFullscreen) { docElm.webkitRequestFullscreen(); }
 
-    // Attempt to lock to landscape to prevent UI cramping
     if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock("landscape").catch(() => {
-            console.log("Orientation lock not supported on this device.");
-        });
+        screen.orientation.lock("landscape").catch(() => {});
     }
 
-    // 2. UI RESET
+    // 2. CAMERA CALIBRATION (The "Black Screen" Fix)
+    // We force the canvas to update its size before centering the camera
+    resizeCanvas();
     hideScreen('start-menu');
     game.hellMode = false; 
-    document.getElementById('app').style.background = 'var(--jim-sky)';
-    document.getElementById('vignette').style.opacity = '0';
-    document.getElementById('energy-fill').classList.remove('energy-fill-warning');
+    
+    // Set starting position first
+    player.x = 2500;
+    player.y = 0;
+    player.vx = 0;
+    player.vy = 0;
 
-    // 3. STATS & UPGRADE CALCULATIONS
+    // Center camera on player immediately to avoid "Black Void" at 0,0
+    game.camX = 2500 - (window.innerWidth / 2);
+    game.camY = 0 - (window.innerHeight / 2);
+    
+    // 3. STATS & ENERGY RESET
     let b1 = SHOP_ITEMS.battery.getEffect(gameSave.upgrades.battery);
     let b2 = SHOP_ITEMS.battery2.getEffect(gameSave.upgrades.battery2);
     let fus = SHOP_ITEMS.fusion.getEffect(gameSave.upgrades.fusion);
@@ -1593,31 +1594,17 @@
     game.energy = game.maxEnergy;
     document.getElementById('fuel-max-num').innerText = Math.floor(game.maxEnergy);
     
-    // 4. POSITION & CAMERA RESET
-    player.x = 2500;
-    player.y = 0;
-    player.vx = 0;
-    player.vy = 0;
-
-    // This forces the camera to snap to the player immediately
-    game.camX = player.x - (canvas.width / 2);
-    game.camY = player.y - (canvas.height / 2);
-    
+    // 4. WORLD STATE RESET
     game.voidLevel = 500; 
-    game.lastCPHeight = 0; 
-    player.lastSafeX = 2500; 
-    player.lastSafeY = 0; 
     game.score = 0;
+    game.lastCPHeight = 0;
+    player.lastSafeX = 2500;
+    player.lastSafeY = 0;
 
-    // 5. WORLD & PARTICLE GENERATION
-    game.floaters = []; 
-    game.particles = []; 
-    game.confetti = [];
-    
+    // 5. RUN GENERATORS & START ENGINE
     generateEnvironment();
     generateLevel();
     
-    // 6. START ENGINE
     game.active = true; 
     isPaused = false;
     

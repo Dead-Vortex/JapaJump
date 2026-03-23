@@ -741,10 +741,14 @@
                 return;
             }
             if (p.id && p.id !== currentUser) {
-                otherPlayers[p.id] = p; 
-                otherPlayers[p.id].lastSeen = Date.now();
+                // Ensure the score is tracked for the leaderboard
+                otherPlayers[p.id] = {
+                    ...p,
+                    score: p.score || 0,
+                    lastSeen: Date.now()
+                };
             }
-        } catch(err) { console.log("Garbage data received"); }
+        } catch(err) { console.log("Data sync error"); }
     };
     let scoreSyncInterval = null;
 
@@ -1561,6 +1565,8 @@
 
     function beginGame() {
     // 1. UI & ORIENTATION FIX
+     document.getElementById('auth-overlay').style.display = 'none';
+        document.getElementById('start-menu').style.display = 'none';
     const docElm = document.documentElement;
     if (docElm.requestFullscreen) { docElm.requestFullscreen(); }
     else if (docElm.webkitRequestFullscreen) { docElm.webkitRequestFullscreen(); }
@@ -1971,16 +1977,21 @@
     }
 
     function draw() {
-        // Draw Background Base
-            if (!game.active && !isPaused) return; // Prevent drawing if game isn't ready
-        
-       
-        
+        // 1. BLOCK DRAWING IF NOT READY
+        if (!game.active && !isPaused) return;
+
+        // 2. REPAIR CAMERA (The NaN / Black Screen Fix)
+        if (isNaN(game.camX) || isNaN(game.camY)) {
+            game.camX = player.x - (canvas.width / 2);
+            game.camY = player.y - (canvas.height / 2);
+        }
+
+        // 3. BACKGROUND BASE
         ctx.fillStyle = game.hellMode ? "#2a0000" : "#87CEEB"; 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // QUANTUM RADAR IMPLEMENTATION
-        const radarZoom = SHOP_ITEMS.radar.getEffect(gameSave.upgrades.radar);
+        // 4. RADAR ZOOM SAFETY
+        const radarZoom = SHOP_ITEMS.radar.getEffect(gameSave.upgrades.radar) || 1.0;
         
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);

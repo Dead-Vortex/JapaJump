@@ -726,6 +726,16 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwfKKcOM3imJJ3_NsJ0489Bt0q0fkjC2kCfMLUSofJ-4PCorocxmydBeVKYa515MA2WXw/exec'; 
     
     let currentUser = null;
+        let otherPlayers = {};
+    // REPLACE THE URL BELOW WITH YOUR RENDER URL (Make sure it starts with wss://)
+    const ws = new WebSocket('wss://japa-server.onrender.com');    
+    ws.onmessage = (e) => {
+        let p = JSON.parse(e.data);
+        if (p.id && p.id !== currentUser) {
+            otherPlayers[p.id] = p; 
+            otherPlayers[p.id].lastSeen = Date.now();
+        }
+    };
     let scoreSyncInterval = null;
 
     function togglePass() {
@@ -1817,6 +1827,21 @@
             return; 
         }
 
+     
+        // Clean up disconnected players (vanish after 2 seconds of no data)
+        Object.keys(otherPlayers).forEach(id => {
+            if (Date.now() - otherPlayers[id].lastSeen > 200000) delete otherPlayers[id];
+        });
+
+        // Blast your live coordinates to the server
+        if (ws.readyState === WebSocket.OPEN && currentUser && game.active) {
+            ws.send(JSON.stringify({
+                id: currentUser, 
+                x: player.x, 
+                y: player.y, 
+                skin: gameSave.skins.equipped 
+            }));
+        }
         // SCORE & SAVE
         game.score = Math.max(0, Math.floor(-player.y / 10));
         if(game.score > gameSave.highscore) { 
@@ -2043,6 +2068,32 @@
             }
         });
 
+        // DRAW MULTIPLAYER GHOSTS
+        Object.values(otherPlayers).forEach(p => {
+            // Only draw if they are on screen to save CPU
+            if(Math.abs(p.x - player.x) > 1500 || Math.abs(p.y - player.y) > 1000) return; 
+
+            ctx.save();
+            ctx.translate(p.x - game.camX + 25, p.y - game.camY + 25);
+            
+            // Draw Ghost Body
+            let ghostSkin = SKINS[p.skin] || SKINS['default'];
+            ctx.fillStyle = ghostSkin.c;
+            ctx.globalAlpha = 0.5; // Make them slightly see-through
+            ctx.beginPath();
+            ctx.roundRect(-25, -25, 50, 50, 12);
+            ctx.fill();
+            
+            // Draw Floating Username
+            ctx.globalAlpha = 1.0;
+            ctx.fillStyle = "white";
+            ctx.font = "bold 14px Bungee";
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = "black";
+            ctx.textAlign = "center";
+            ctx.fillText(p.id.toUpperCase(), 0, -35); 
+            ctx.restore();
+        });
         ctx.restore(); 
 
         // UPDATE HTML HUD

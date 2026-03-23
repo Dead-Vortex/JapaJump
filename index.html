@@ -733,10 +733,11 @@
         let p = JSON.parse(e.data); // 1. Parse the data FIRST
     
         // 2. Now check if it's a chat message
-        if (p.type === 'chat') {
-            spawnFloater(`${p.id}: ${p.text}`, 'white', p.x, p.y - 50);
-            SoundEngine.coin(); // Optional "Ping" sound
-            return; // Stop here so it doesn't try to move a "ghost" that isn't there
+                if (p.type === 'chat') {
+            // Bold Yellow text with a Black Shadow so it pops against the blue sky
+            spawnFloater(`${p.id}: ${p.text}`, '#FFD700', p.x, p.y - 50); 
+            SoundEngine.coin(); 
+            return;
         }
     
         // 3. Otherwise, update the player's ghost position
@@ -1512,6 +1513,11 @@
     }
 
     function generateLevel() {
+                // If players are online, use Seed 123 so platforms are in the same spot for everyone
+        let seed = Object.keys(otherPlayers).length > 0 ? 123 : Math.random();
+        let rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+        // Now, REPLACE every "Math.random()" inside generateLevel with "rnd()"
+        
         game.platforms = [];
         const magnetBonus = SHOP_ITEMS.magnet.getEffect(gameSave.upgrades.magnet);
         const ozoneBonus = SHOP_ITEMS.ozone.getEffect(gameSave.upgrades.ozone);
@@ -2102,6 +2108,14 @@
             
             let ghostSkin = SKINS[p.skin] || SKINS['default'];
             ctx.globalAlpha = 0.6; // Slightly transparent so you know it's a ghost
+
+            // TOP-RIGHT MINI LEADERBOARD
+             ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(canvas.width-220, 100, 200, 150);
+             ctx.fillStyle = "white"; ctx.font = "12px Bungee"; ctx.fillText("LIVE TOWER RANK:", canvas.width-210, 120);
+             let players = Object.values(otherPlayers).concat([{id:currentUser, score:game.score}]);
+             players.sort((a,b) => b.score - a.score).slice(0, 5).forEach((p, i) => {
+                 ctx.fillText(`${i+1}. ${p.id.toUpperCase()}: ${p.score}m`, canvas.width-210, 145 + i*20);
+             });
 
             // Draw Body
             ctx.fillStyle = game.hellMode && ghostSkin.n === 'Standard' ? "#1a1a1a" : ghostSkin.c;

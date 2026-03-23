@@ -16,11 +16,14 @@
   <img src="https://img.shields.io/badge/CLOUD-SYNC_ACTIVE-orange?style=for-the-badge&logo=google-cloud">
 </p>
 
+<br>
+
 <div align="center">
-  <video autoplay loop muted playsinline style="border-radius: 15px; border: 4px solid #00d2ff; box-shadow: 0 0 25px #00d2ff; width: 75%; margin-bottom: 20px;">
-    <source src="jump.mp4" type="video/mp4">
-  </video>
+  <h2>🔥 LIVE TELEMETRY FEED 🔥</h2>
+  <video src="jump.mp4" autoplay loop muted playsinline width="85%"></video>
 </div>
+
+<br>
 
 <marquee scrollamount="20" direction="left" style="background: #000; border-top: 2px solid #ff4b2b; border-bottom: 2px solid #ff4b2b; padding: 10px 0;">
   <font color="#ff4b2b" size="5" face="monospace"><b>
@@ -61,6 +64,11 @@
 
 <br clear="all">
 <br>
+
+<div align="center">
+  <video src="jump.mp4" autoplay loop muted playsinline width="50%"></video>
+  <p><i>^ Physics Engine Demonstration ^</i></p>
+</div>
 
 <details open>
   <summary><b><font size="4">1. ZERO-GAP CHECKPOINTS 🚩</font></b></summary>

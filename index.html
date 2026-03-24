@@ -721,12 +721,9 @@
     /* =========================================================================
        MODULE 2: NETWORK & CLOUD SYNC (Google Apps Script Backend)
        ========================================================================= */
- const SAVE_KEY = 'japa_jump_v7_ultimate_save';
-const _u = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J4Qm8tYlNOTy1CcTcxSWctQXRnaVBsUWRYZ0Y1RXFzQjI1N0RKcGpET3NRalR5ZEc0cjE2c1dJaGpKdWtQNXRHb3JzUS9leGVj";
-const _s = "ZHN0YW55ZnRld3l5cm1meXdua3dkYWdmeHlkc211";
-
-const SCRIPT_URL = atob(_u);
-const MASTER_SECRET = atob(_s);
+    const SAVE_KEY = 'japa_jump_v7_ultimate_save';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBo-bSKO-Bq71Ig-AtgiPlQdXgF5EqsB257DJpjDOsQjTydG4r16sWIhjJUkP5tGorsQ/exec'; 
+     const MASTER_SECRET = "dstanyftewyyrmfywnwdagfxydsmu"; // <--- ADDED SECRET
 
  
     let currentUser = null;

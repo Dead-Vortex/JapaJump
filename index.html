@@ -14,6 +14,27 @@
                 /* Optimized Mobile UI */
            /* FIXED MOBILE UI & HUD SCALING */
             #mobile-ui, #rot { display: none; }
+
+                         /* The "Liquid" moving background */
+             #auth-overlay {
+                 background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+                 background-size: 400% 400%;
+                 animation: liquidGradient 15s ease infinite;
+             }
+             
+             @keyframes liquidGradient {
+                 0% { background-position: 0% 50%; }
+                 50% { background-position: 100% 50%; }
+                 100% { background-position: 0% 50%; }
+             }
+             
+             /* Enhanced Glass Box */
+             .auth-container {
+                 background: rgba(255, 255, 255, 0.05) !important;
+                 border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                 box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8), 
+                             inset 0 0 20px rgba(255, 255, 255, 0.05) !important;
+             }
             
             @media (pointer: coarse) {
                 /* Shrink HUD so it doesn't cover the top of the screen */

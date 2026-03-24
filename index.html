@@ -16,8 +16,6 @@
             #mobile-ui, #rot { display: none; }
 
                          /* The "Liquid" moving background */
-            
-             
              
             
             @media (pointer: coarse) {
@@ -487,28 +485,8 @@
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 5px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--jim-blue); }
 
-                  /* The "Liquid" moving background - Overrides the black overlay */
-          #auth-overlay {
-              background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab) !important;
-              background-size: 400% 400% !important;
-              animation: liquidGradient 15s ease infinite !important;
-          }
-          
-          @keyframes liquidGradient {
-              0% { background-position: 0% 50%; }
-              50% { background-position: 100% 50%; }
-              100% { background-position: 0% 50%; }
-          }
-          
-          /* Enhanced Glass Box with better blur */
-          .auth-container {
-              background: rgba(255, 255, 255, 0.1) !important;
-              backdrop-filter: blur(15px) saturate(180%) !important;
-              -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
-              border: 1px solid rgba(255, 255, 255, 0.3) !important;
-              box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6) !important;
-          }
-        
+        #auth-overlay { display: flex; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); z-index: 10005; }
+        .auth-container { padding: 40px; border-radius: 30px; width: 450px; text-align: center; border: 2px solid var(--glass-border); box-shadow: 0 0 50px rgba(79, 172, 254, 0.2); max-height: 90vh; overflow-y: auto; }
         
         .auth-input { width: 85%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: white; font-family: 'Inter', sans-serif; font-size: 16px; outline: none; transition: 0.2s; box-sizing: border-box; }
         .auth-input:focus { border-color: var(--jim-blue); box-shadow: 0 0 15px rgba(79, 172, 254, 0.3); }
@@ -2313,36 +2291,99 @@ if (ws.readyState === WebSocket.OPEN && currentUser && game.active) {
         });
     }
 
-                 const j = document.getElementById('joy'), mj = document.getElementById('m-jump');
-                
-                j.addEventListener('touchmove', (e) => {
-                    let r = j.getBoundingClientRect();
-                    let x = (e.touches[0].clientX - (r.left + r.width/2)) / (r.width/2);
-                    
-                    // SENSITIVITY FIX: 0.1 deadzone makes it feel much faster
-                    game.keys['KeyA'] = x < -0.1; 
-                    game.keys['KeyD'] = x > 0.1;
-                    
-                    // VISUAL FEEDBACK: The button now slides under your thumb
-                    let visualX = Math.max(-1, Math.min(1, x)) * 30;
-                    j.style.transform = `translateX(${visualX}px)`;
-                }, {passive: false});
-                
-                j.addEventListener('touchend', () => { 
-                    game.keys['KeyA'] = false; 
-                    game.keys['KeyD'] = false; 
-                    j.style.transform = `translateX(0px)`; // Snaps back to center
-                });
-                
-                mj.addEventListener('touchstart', (e) => { 
-                    e.preventDefault(); 
-                    game.keys['Space'] = true; 
-                }, {passive: false});
-                
-                mj.addEventListener('touchend', () => { 
-                    game.keys['Space'] = false; 
-                    game.keys.locked = false; 
-                });
+                              // 1. ELIMINATE BROWSER LAG (Global lock)
+             document.addEventListener('touchstart', (e) => {
+                 if (e.target.closest('.m-btn')) e.preventDefault();
+             }, { passive: false });
+             
+             const j = document.getElementById('joy');
+             const mj = document.getElementById('m-jump');
+             
+             // --- THE 360 VIRTUAL JOYSTICK ---
+             let joyActive = false;
+             let joyCenterX = 0;
+             let joyCenterY = 0;
+             const maxRadius = 45; // Max pixels the stick can move from center
+             
+             // Start Touch
+             j.addEventListener('touchstart', (e) => {
+                 e.preventDefault();
+                 joyActive = true;
+                 
+                 // Find the absolute center of the button on the screen
+                 let r = j.getBoundingClientRect();
+                 joyCenterX = r.left + r.width / 2;
+                 joyCenterY = r.top + r.height / 2;
+                 
+                 j.style.transition = 'none'; // Remove snap-back delay so it instantly follows thumb
+                 j.style.filter = "brightness(1.5)";
+                 handleJoyMove(e.touches[0]);
+             }, { passive: false });
+             
+             // Dragging
+             j.addEventListener('touchmove', (e) => {
+                 e.preventDefault();
+                 if (!joyActive) return;
+                 handleJoyMove(e.touches[0]);
+             }, { passive: false });
+             
+             // The Core Math Function
+             function handleJoyMove(touch) {
+                 // 1. Calculate how far thumb is from the center
+                 let dx = touch.clientX - joyCenterX;
+                 let dy = touch.clientY - joyCenterY;
+                 
+                 // 2. Pythagorean theorem for total distance, atan2 for the angle
+                 let distance = Math.sqrt(dx * dx + dy * dy);
+                 let angle = Math.atan2(dy, dx);
+                 
+                 // 3. Visuals: Cap the distance to our max radius in a perfect 360 circle
+                 let visualDist = Math.min(distance, maxRadius);
+                 let visualX = Math.cos(angle) * visualDist;
+                 let visualY = Math.sin(angle) * visualDist;
+                 
+                 // Move the button in full 360
+                 j.style.transform = `translate(${visualX}px, ${visualY}px) scale(1.1)`;
+                 
+                 // 4. Logic: Even though it moves 360, we only care about Left/Right
+                 let normalizedX = dx / maxRadius; // Scales X from roughly -1 to 1
+                 
+                 // Apply a 0.2 deadzone so resting your thumb doesn't cause drifting
+                 game.keys['KeyA'] = normalizedX < -0.2; 
+                 game.keys['KeyD'] = normalizedX > 0.2;
+             }
+             
+             // Release
+             function resetJoystick() {
+                 joyActive = false;
+                 game.keys['KeyA'] = false;
+                 game.keys['KeyD'] = false;
+                 
+                 // Add a quick, smooth CSS transition just for the snap-back
+                 j.style.transition = 'transform 0.1s ease-out'; 
+                 j.style.transform = `translate(0px, 0px) scale(1)`;
+                 j.style.filter = "brightness(1)";
+             }
+             
+             j.addEventListener('touchend', resetJoystick);
+             j.addEventListener('touchcancel', resetJoystick);
+             
+             
+             // --- THE INSTANT-REACTION JUMP ---
+             mj.addEventListener('touchstart', (e) => {
+                 e.preventDefault();
+                 game.keys['Space'] = true;
+                 mj.style.transform = "scale(0.85)";
+                 mj.style.filter = "brightness(1.5)";
+             }, { passive: false });
+             
+             mj.addEventListener('touchend', (e) => {
+                 e.preventDefault();
+                 game.keys['Space'] = false;
+                 game.keys.locked = false;
+                 mj.style.transform = "scale(1)";
+                 mj.style.filter = "brightness(1)";
+             });
     // INIT
     updateHUDValues();
 

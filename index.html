@@ -16,25 +16,9 @@
             #mobile-ui, #rot { display: none; }
 
                          /* The "Liquid" moving background */
-             #auth-overlay {
-                 background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-                 background-size: 400% 400%;
-                 animation: liquidGradient 15s ease infinite;
-             }
+            
              
-             @keyframes liquidGradient {
-                 0% { background-position: 0% 50%; }
-                 50% { background-position: 100% 50%; }
-                 100% { background-position: 0% 50%; }
-             }
              
-             /* Enhanced Glass Box */
-             .auth-container {
-                 background: rgba(255, 255, 255, 0.05) !important;
-                 border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                 box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8), 
-                             inset 0 0 20px rgba(255, 255, 255, 0.05) !important;
-             }
             
             @media (pointer: coarse) {
                 /* Shrink HUD so it doesn't cover the top of the screen */
@@ -503,8 +487,28 @@
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 5px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--jim-blue); }
 
-        #auth-overlay { display: flex; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); z-index: 10005; }
-        .auth-container { padding: 40px; border-radius: 30px; width: 450px; text-align: center; border: 2px solid var(--glass-border); box-shadow: 0 0 50px rgba(79, 172, 254, 0.2); max-height: 90vh; overflow-y: auto; }
+                  /* The "Liquid" moving background - Overrides the black overlay */
+          #auth-overlay {
+              background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab) !important;
+              background-size: 400% 400% !important;
+              animation: liquidGradient 15s ease infinite !important;
+          }
+          
+          @keyframes liquidGradient {
+              0% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+              100% { background-position: 0% 50%; }
+          }
+          
+          /* Enhanced Glass Box with better blur */
+          .auth-container {
+              background: rgba(255, 255, 255, 0.1) !important;
+              backdrop-filter: blur(15px) saturate(180%) !important;
+              -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+              border: 1px solid rgba(255, 255, 255, 0.3) !important;
+              box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6) !important;
+          }
+        
         
         .auth-input { width: 85%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: white; font-family: 'Inter', sans-serif; font-size: 16px; outline: none; transition: 0.2s; box-sizing: border-box; }
         .auth-input:focus { border-color: var(--jim-blue); box-shadow: 0 0 15px rgba(79, 172, 254, 0.3); }

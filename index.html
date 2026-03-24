@@ -946,7 +946,7 @@
     }
 
     // MULTILINE EXPANDED SHOP ITEMS DICTIONARY FOR BETTER READABILITY AND MAINTENANCE
-    const SHOP_ITEMS = {
+    const  = {
         solar: { 
             name: 'Solar Panels', 
             desc: 'Reduces moving energy drain.', 
@@ -973,9 +973,9 @@
         },
         radar: { 
             name: 'Quantum Radar', 
-            desc: 'Zooms camera out to see further.', 
+            desc: 'Zooms camera out 40% per tier.', 
             max: 3, baseCost: 350, costMult: 2.0, 
-            getEffect: t => 1.0 - (t * 0.08) 
+            getEffect: t => Math.pow(0.6, t) // Tier 1: 60% size, Tier 2: 36%, Tier 3: 21%
         },
         recycler: { 
             name: 'Kinetic Recycler', 
@@ -1015,9 +1015,9 @@
         },
         magnet: { 
             name: 'Platform Magnet', 
-            desc: 'Makes platforms slightly wider.', 
+            desc: '(Next Run) Makes platforms slightly wider.', 
             max: 3, baseCost: 700, costMult: 2.0, 
-            getEffect: t => t * 15 
+            getEffect: t => t * 15
         },
         plating: { 
             name: 'Void Plating', 
@@ -1063,13 +1063,13 @@
         },
         smart: { 
             name: 'Smart Jump', 
-            desc: 'Caps max jump energy cost.', 
-            max: 2, baseCost: 2000, costMult: 2.0, 
-            getEffect: t => t * 10 
+            desc: 'Reduces ALL jump energy costs by 15% per tier.', 
+            max: 3, baseCost: 2000, costMult: 2.0, 
+            getEffect: t => 1.0 - (t * 0.15)
         },
         albedo: { 
             name: 'Albedo Effect', 
-            desc: 'Pushes Devil Zone 200m higher.', 
+            desc: '(Next Run) Pushes Devil Zone 200m higher.', 
             max: 3, baseCost: 1800, costMult: 2.0, 
             getEffect: t => t * 200 
         },
@@ -1291,7 +1291,6 @@
         if (shopTab === 'skins') {
             if (gameSave.skins.unlocked.includes(id)) {
                 gameSave.skins.equipped = id; 
-                saveGame(); await syncAllData();
                 saveGame(); 
                 renderShop(); 
                 SoundEngine.buy(); 
@@ -1300,7 +1299,6 @@
             if (spendCredits(SKINS[id].p)) {
                 gameSave.skins.unlocked.push(id); 
                 gameSave.skins.equipped = id; 
-                saveGame(); await syncAllData();
                 saveGame(); 
                 renderShop(); 
                 doConfetti(); 
@@ -1312,7 +1310,6 @@
             const cost = calculateCost(id);
             if (cost !== -1 && spendCredits(cost)) {
                 gameSave.upgrades[id]++; 
-                saveGame(); await syncAllData();
                 saveGame(); 
                 renderShop(); 
                 doConfetti(); 
@@ -1528,8 +1525,8 @@
 
     function generateLevel() {
         // Shared Seed: If online, everyone gets Seed 123. If alone, random.
-        let seed = Object.keys(otherPlayers).length > 0 ? 123 : Math.random();
-        let rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+     let seed = Object.keys(otherPlayers).length > 0 ? 123 : Math.floor(Math.random() * 1000000);
+     let rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
         
         game.platforms = [];
         const magnetBonus = SHOP_ITEMS.magnet.getEffect(gameSave.upgrades.magnet);
@@ -1656,6 +1653,10 @@
         const shieldMod = SHOP_ITEMS.shield.getEffect(gameSave.upgrades.shield);
         const aeroMod = SHOP_ITEMS.aero.getEffect(gameSave.upgrades.aero);
         const hydroMod = SHOP_ITEMS.hydro.getEffect(gameSave.upgrades.hydro);
+        let b1 = SHOP_ITEMS.battery.getEffect(gameSave.upgrades.battery);
+        let b2 = SHOP_ITEMS.battery2.getEffect(gameSave.upgrades.battery2);
+        let fus = SHOP_ITEMS.fusion.getEffect(gameSave.upgrades.fusion);
+        game.maxEnergy = (b1 + b2) * fus;
 
         player.maxJumps = 2 + kelpMod;
 
@@ -1819,7 +1820,8 @@
             }
             
             if (cost > 0) {
-                if(smartMod > 0) cost = Math.min(cost, 28 - smartMod); 
+                // Apply Smart Jump discount (e.g., 20 energy * 0.85 = 17 energy)
+                if(smartMod < 1.0) cost = cost * smartMod; 
                 game.energy -= cost;
                 game.keys.locked = true;
             }
@@ -1834,10 +1836,13 @@
         game.camY += (player.y - canvas.height/2 - game.camY) * 0.12;
 
         // VOID DEATH CHECK (PLATING RESTORE)
+        // VOID DEATH CHECK (PLATING RESTORE)
+       // VOID DEATH CHECK (PLATING RESTORE)
         if(player.y > game.voidLevel) { 
             let plateRestore = SHOP_ITEMS.plating.getEffect(gameSave.upgrades.plating);
             if(plateRestore > 0) { 
-                game.energy = plateRestore; 
+                // Lose 200 energy for falling, but never drop below your Plate Armor limit
+                game.energy = Math.max(plateRestore, game.energy - 200); 
                 showCreditToast("VOID PLATING TRIGGERED!"); 
                 SoundEngine.checkpoint();
             } else { 

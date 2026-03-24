@@ -722,7 +722,7 @@
        MODULE 2: NETWORK & CLOUD SYNC (Google Apps Script Backend)
        ========================================================================= */
     const SAVE_KEY = 'japa_jump_v7_ultimate_save';
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBo-bSKO-Bq71Ig-AtgiPlQdXgF5EqsB257DJpjDOsQjTydG4r16sWIhjJUkP5tGorsQ/exec'; 
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyN1EB9Jol8nuz5oINeHLwI0yo9FwxZRBre8-91cqK4VP-SQJAbkCpEy96bXibm2KkuXQ/exec'; 
      const MASTER_SECRET = "dstanyftewyyrmfywnwdagfxydsmu"; // <--- ADDED SECRET
 
  
@@ -766,6 +766,7 @@
                     method: 'POST', 
                     body: JSON.stringify({ 
                         secret: MASTER_SECRET, // <--- ADDED HERE
+                        origin: window.location.hostname, // <--- ADD THIS LINE
                         action: 'getLeaderboard' 
                     }) 
                 });     
@@ -814,6 +815,7 @@
                 method: 'POST', 
                 body: JSON.stringify({ 
                     secret: MASTER_SECRET, // <--- ADDED HERE
+                    origin: window.location.hostname, // <--- ADD THIS LINE
                     action, 
                     username: user, 
                     password: pass 
@@ -878,7 +880,8 @@
             await fetch(SCRIPT_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ 
-                    secret: MASTER_SECRET, // <--- ADDED HERE
+                    secret: MASTER_SECRET,
+                    origin: window.location.hostname, // <--- ADD THIS LINE// <--- ADDED HERE
                     action: 'syncAll', 
                     username: currentUser, 
                     score: gameSave.highscore, // Use highscore, not current score

@@ -628,28 +628,23 @@
     </div>
 
            <div class="hud" id="main-hud">
-           <div class="hud-card glass-ui" style="position:fixed; bottom:40px; left:20px; pointer-events:auto;">
-               <div class="label">FOV</div>
-               <select id="zoom-sel" class="glass-ui" style="background:none; border:none; color:white; font-family:'Bungee'; outline:none;" onchange="game.activeZoom = parseInt(this.value)"></select>
-           </div>
-       
-           <div class="hud-card glass-ui" style="position:fixed; bottom:40px; right:20px; pointer-events:auto; cursor:pointer;" onclick="toggleSens()">
-               <div class="label">SENS</div>
-               <div id="sens-val" class="value" style="font-size:18px;">1.0x</div>
-           </div>
-       
-           <div class="hud-card glass-ui"><div class="label">Alt</div><div id="alt-val" class="value">0m</div></div>
-           <div class="hud-card glass-ui" style="border:2px solid gold;"><div class="label">Cr</div><div id="cred-val" class="value val-gold">0</div></div>
-       </div>
-        <div class="hud-card glass-ui"><div class="label">Altitude</div><div id="alt-val" class="value">0m</div></div>
-        <div class="hud-card glass-ui"><div class="label">Highscore</div><div id="hi-val" class="value">0m</div></div>
-        <div class="hud-card glass-ui"><div class="label">Checkpoint</div><div id="zone-val" class="value">Start</div></div>
-        <div class="hud-card glass-ui" style="border: 2px solid var(--jim-gold);"><div class="label">Credits</div><div id="cred-val" class="value val-gold">0</div></div>
+    <div style="position:fixed; top:20px; width:100%; display:flex; justify-content:center; gap:10px; pointer-events:none;">
+        <div class="hud-card glass-ui"><div class="label">ALT</div><div id="alt-val" class="value">0m</div></div>
+        <div class="hud-card glass-ui" style="border:2px solid #FFD700;"><div class="label">CREDITS</div><div id="cred-val" class="value val-gold">0</div></div>
+        <div class="hud-btn" onclick="togglePause()" style="pointer-events:auto;"><div class="label">SYSTEM</div><div class="value" style="font-size:18px;">PAUSE</div></div>
+    </div>
+
+    <div class="hud-card glass-ui" style="position:fixed; bottom:20px; left:20px; pointer-events:auto; min-width:80px;">
+        <div class="label">FOV</div>
+        <select id="zoom-sel" class="glass-ui" style="background:none; border:none; color:white; font-family:'Bungee'; cursor:pointer;" onchange="game.activeZoom = parseInt(this.value)"></select>
+    </div>
+
+    <div class="hud-card glass-ui" style="position:fixed; bottom:20px; right:20px; pointer-events:auto; cursor:pointer; min-width:80px;" onclick="toggleSens()">
+        <div id="sens-label" class="label">SENS</div>
+        <div id="sens-val" class="value" style="font-size:22px;">1.0x</div>
+    </div>
+</div>
         
-        <div class="hud-btn" onclick="togglePause()">
-            <div class="label">System</div>
-            <div class="value">PAUSE</div>
-        </div>
     </div>
 
     <div class="energy-hud" id="energy-hud">

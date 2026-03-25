@@ -1552,16 +1552,7 @@
     }
 
     function generateLevel() {
-                  let lastJackpotMile = -1; // MUST be above the "for" loop
-       for(let i=0; i < 2000; i++) {
-           let alt = Math.max(0, Math.floor(-cy / 10));
-           let currentMile = Math.floor(alt / 2000); 
-       
-           if (currentMile > lastJackpotMile) {
-               p.isJackpot = true; 
-               p.color = '#FFD700'; 
-               lastJackpotMile = currentMile; // This "locks" the milestone
-           }
+                  
     // ... rest of your platform generation code
         // Shared Seed: If online, everyone gets Seed 123. If alone, random.
      let seed = Object.keys(otherPlayers).length > 0 ? 123 : Math.floor(Math.random() * 1000000);
@@ -1575,10 +1566,17 @@
         game.platforms.push({x: 2350, y: 150, w: 300 + magnetBonus, h: 50, color: '#2ecc71'});
         
         let cy = 0, lastX = 2500; 
+        let lastJackpotMile = -1; // <--- Put this here!
         for(let i=0; i < 2000; i++) {
             let alt = Math.max(0, Math.floor(-cy / 10)); 
             let isHell = alt > (9000 + albedoBonus);
             let isFinal = alt >= 10000;
+            let currentMile = Math.floor(alt / 2000);
+            let isJackpot = false;
+            if (currentMile > lastJackpotMile && alt > 0) {
+                isJackpot = true;
+                lastJackpotMile = currentMile;
+            }
             let isCP = alt > 0 && Math.floor(alt / 500) > Math.floor(Math.max(0, Math.floor(-game.platforms[game.platforms.length-1]?.y || 0) / 10) / 500);  
             
             

@@ -445,6 +445,7 @@
         .tab-btn.active { background: var(--jim-blue); color: black; border-color: white; }
 
         .shop-balance { background: rgba(255, 255, 255, 0.1); border: 2px solid var(--jim-gold); padding: 10px 30px; border-radius: 30px; font-family: 'Bungee'; font-size: 28px; color: white; display: flex; align-items: center; gap: 15px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+        .energy-fill-warning { animation: pulse 0.5s infinite alternate; } @keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
 
         .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; overflow-y: auto; padding-right: 15px; padding-bottom: 20px; flex-grow: 1; }
 
@@ -679,6 +680,14 @@
 </div>
 
 <script>
+         function haptic(ms = 40) {
+         if (isMobile && navigator.vibrate) {
+             navigator.vibrate(ms);
+         }
+     }
+
+
+ 
     const isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
     /* =========================================================================
        MODULE 1: AUDIO SYNTHESIZER ENGINE
@@ -1163,7 +1172,8 @@
         'void': { n: 'Void', c: '#111111', a: '#ffffff', p: 15000 },
         'ruby': { n: 'Ruby', c: '#e0115f', a: '#ffb6c1', p: 25000 },
         'gold': { n: 'Gold', c: '#FFD700', a: '#ffffff', p: 50000 },
-        'diamond': { n: 'Diamond', c: '#b9f2ff', a: '#ffffff', p: 100000 }
+        'diamond': { n: 'Diamond', c: '#b9f2ff', a: '#ffffff', p: 100000 },
+        'chroma': { n: 'CHROMA', c: 'hsl(0, 100%, 50%)', a: '#fff', p: 200 }
     };
 
     // PILOT AWARDS (ACHIEVEMENTS) DICTIONARY
@@ -1291,6 +1301,7 @@
        MODULE 4: UI & MENUS (Original Screen Management)
        ========================================================================= */
     function showScreen(id) { 
+        haptic(30);
         document.getElementById(id).style.display = 'flex'; 
     }
     
@@ -1329,6 +1340,7 @@
 
     // FIX: Added 'async' keyword here to resolve the SyntaxError causing the crash.
     async function buyItem(id) {
+        haptic(60);
         if (shopTab === 'skins') {
             if (gameSave.skins.unlocked.includes(id)) {
                 gameSave.skins.equipped = id; 
@@ -1443,6 +1455,7 @@
     let isPaused = false;
     
     function togglePause() {
+        haptic(30);
         if(!game.active && !isPaused) return; 
         isPaused = !isPaused;
         if(isPaused) {
@@ -1596,7 +1609,7 @@
             
             
             // USE rnd() INSTEAD OF Math.random() EVERYWHERE
-            let pW = isFinal ? 400 : (isHell ? (45 + rnd() * 10) : (80 + rnd() * 30));
+            let pW = isFinal ? 400 : (isHell ? (45 + rnd() * 10) : (111 + rnd() * 30));
             pW += magnetBonus; 
             if(isCP) pW += ozoneBonus;
 
@@ -1931,6 +1944,9 @@
         let displayPct = Math.max(0, (game.energy / game.maxEnergy) * 100);
         const bar = document.getElementById('energy-fill');
         bar.style.width = displayPct + '%';
+        document.getElementById('energy-hud').querySelector('.prog-bar')?.remove() || document.getElementById('energy-hud').insertAdjacentHTML('afterbegin', `<div class="prog-bar" style="width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; margin-bottom:5px; overflow:hidden;"><div style="width:${Math.min(100, (game.score/10000)*100)}%; height:100%; background:var(--jim-gold); transition:0.3s;"></div></div>`);
+
+     
         if(displayPct < 20) bar.classList.add('energy-fill-warning');
         else bar.classList.remove('energy-fill-warning');
 
@@ -2099,6 +2115,8 @@ if (ws.readyState === WebSocket.OPEN && currentUser && game.active) {
         
         // DRAW PLAYER SKINS
         const skin = SKINS[gameSave.skins.equipped] || SKINS['default'];
+
+        if(gameSave.skins.equipped === 'chroma') SKINS.chroma.c = `hsl(${Date.now() / 10 % 360}, 100%, 50%)`;
 
         ctx.save();
         ctx.translate(player.x - game.camX + player.w/2, player.y - game.camY + player.h/2);
@@ -2433,6 +2451,7 @@ if (ws.readyState === WebSocket.OPEN && currentUser && game.active) {
              // --- THE INSTANT-REACTION JUMP ---
              mj.addEventListener('touchstart', (e) => {
                  e.preventDefault();
+                 haptic(25); // <--- Add this for a quick "kick" when jumping
                  game.keys['Space'] = true;
                  mj.style.transform = "scale(0.85)";
                  mj.style.filter = "brightness(1.5)";

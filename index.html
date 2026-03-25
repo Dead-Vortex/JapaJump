@@ -627,14 +627,20 @@
         <button class="play-btn" style="background: #ff4b2b; color: white;" onclick="location.reload()">PLAY AGAIN</button>
     </div>
 
-    <div class="hud" id="main-hud">
-
-                     <div class="hud-card glass-ui" style="pointer-events: auto;">
-          <div class="label">FOV</div>
-          <select id="zoom-sel" class="glass-ui" style="background:none; border:none; color:white; font-family:'Bungee'; font-size:18px; outline:none; cursor:pointer; pointer-events: auto;" onchange="game.activeZoom = parseInt(this.value)">
-              <option value="0">100%</option>
-          </select>
-      </div>
+           <div class="hud" id="main-hud">
+           <div class="hud-card glass-ui" style="position:fixed; bottom:40px; left:20px; pointer-events:auto;">
+               <div class="label">FOV</div>
+               <select id="zoom-sel" class="glass-ui" style="background:none; border:none; color:white; font-family:'Bungee'; outline:none;" onchange="game.activeZoom = parseInt(this.value)"></select>
+           </div>
+       
+           <div class="hud-card glass-ui" style="position:fixed; bottom:40px; right:20px; pointer-events:auto; cursor:pointer;" onclick="toggleSens()">
+               <div class="label">SENS</div>
+               <div id="sens-val" class="value" style="font-size:18px;">1.0x</div>
+           </div>
+       
+           <div class="hud-card glass-ui"><div class="label">Alt</div><div id="alt-val" class="value">0m</div></div>
+           <div class="hud-card glass-ui" style="border:2px solid gold;"><div class="label">Cr</div><div id="cred-val" class="value val-gold">0</div></div>
+       </div>
         <div class="hud-card glass-ui"><div class="label">Altitude</div><div id="alt-val" class="value">0m</div></div>
         <div class="hud-card glass-ui"><div class="label">Highscore</div><div id="hi-val" class="value">0m</div></div>
         <div class="hud-card glass-ui"><div class="label">Checkpoint</div><div id="zone-val" class="value">Start</div></div>
@@ -1305,6 +1311,18 @@
         renderShop();
     }
 
+
+    // ADD THIS BELOW YOUR OTHER FUNCTIONS:
+    function toggleSens() {
+        if(navigator.vibrate) navigator.vibrate(50);
+        const levels = [0.5, 1.0, 1.5, 2.0];
+        let i = levels.indexOf(game.sens);
+        game.sens = levels[(i + 1) % levels.length];
+        document.getElementById('sens-val').innerText = game.sens + "x";
+        SoundEngine.buy(); // Optional: adds a click sound!
+    }
+ 
+
     function calculateCost(id) {
         if (shopTab === 'skins') return SKINS[id].p;
         const item = SHOP_ITEMS[id];
@@ -1488,6 +1506,7 @@
         active: false, 
         quizActive: false,
         energy: 1000, 
+        sens: 1.0,
         maxEnergy: 1000, 
         score: 0, 
         camX: 0, 
@@ -1739,8 +1758,7 @@
         // MOVEMENT & PASSIVES
         if(left || right) {
             game.energy -= (0.38 * solarMod * hellDrainMult); 
-            let moveSensitivity = 0.5; // Change this if you want it faster/slower
-            let accel = ((isMobile ? 0.8 : 1.5) * moveSensitivity) + aeroMod;
+            let accel = (((isMobile ? 0.8 : 1.5) * 0.5) + aeroMod) * game.sens;
              player.vx += left ? -accel : accel;
             player.facing = left ? -1 : 1; 
             player.walk += 0.35;
@@ -1792,7 +1810,7 @@
                                           if(p.isJackpot) { 
                     p.isJackpot = false; // Makes it go away forever immediately
                     p.color = '#fff';    // Turns the platform back to white
-                    let r = Math.floor(Math.random() * 1951) + 50; 
+                    let r = Math.floor(Math.random() * 179) + 2;
                     addCredits(r); 
                     showCreditToast(`💰 JACKPOT: +${r} CR!`); 
                     SoundEngine.win(); 

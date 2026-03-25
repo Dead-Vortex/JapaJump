@@ -485,7 +485,20 @@
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 5px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--jim-blue); }
 
-        #auth-overlay { display: flex; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); z-index: 10005; }
+          #auth-overlay { 
+              display: flex; 
+              z-index: 10005;
+              /* Liquid Glass Effect */
+              background: linear-gradient(45deg, #ff007f, #00f0ff, #7000ff, #ff007f); 
+              background-size: 400% 400%; 
+              animation: flow 10s ease infinite; 
+              backdrop-filter: blur(15px); 
+          } 
+          @keyframes flow { 
+              0% { background-position: 0% 50%; } 
+              50% { background-position: 100% 50%; } 
+              100% { background-position: 0% 50%; } 
+          }       
         .auth-container { padding: 40px; border-radius: 30px; width: 450px; text-align: center; border: 2px solid var(--glass-border); box-shadow: 0 0 50px rgba(79, 172, 254, 0.2); max-height: 90vh; overflow-y: auto; }
         
         .auth-input { width: 85%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: white; font-family: 'Inter', sans-serif; font-size: 16px; outline: none; transition: 0.2s; box-sizing: border-box; }

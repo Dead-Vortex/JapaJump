@@ -1552,6 +1552,17 @@
     }
 
     function generateLevel() {
+                  let lastJackpotMile = -1; // MUST be above the "for" loop
+       for(let i=0; i < 2000; i++) {
+           let alt = Math.max(0, Math.floor(-cy / 10));
+           let currentMile = Math.floor(alt / 2000); 
+       
+           if (currentMile > lastJackpotMile) {
+               p.isJackpot = true; 
+               p.color = '#FFD700'; 
+               lastJackpotMile = currentMile; // This "locks" the milestone
+           }
+    // ... rest of your platform generation code
         // Shared Seed: If online, everyone gets Seed 123. If alone, random.
      let seed = Object.keys(otherPlayers).length > 0 ? 123 : Math.floor(Math.random() * 1000000);
      let rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
@@ -1568,7 +1579,8 @@
             let alt = Math.max(0, Math.floor(-cy / 10)); 
             let isHell = alt > (9000 + albedoBonus);
             let isFinal = alt >= 10000;
-            let isCP = alt > 0 && Math.floor(alt / 500) > Math.floor(Math.max(0, Math.floor(-game.platforms[game.platforms.length-1]?.y || 0) / 10) / 500);         
+            let isCP = alt > 0 && Math.floor(alt / 500) > Math.floor(Math.max(0, Math.floor(-game.platforms[game.platforms.length-1]?.y || 0) / 10) / 500);  
+            
             
             // USE rnd() INSTEAD OF Math.random() EVERYWHERE
             let pW = isFinal ? 400 : (isHell ? (45 + rnd() * 10) : (80 + rnd() * 30));
@@ -1774,6 +1786,15 @@
         // PLATFORM COLLISION
         game.platforms.forEach(p => {
             if(player.vy > 0 && player.x + 40 > p.x && player.x < p.x + p.w && player.y + player.h > p.y && player.y + player.h < p.y + p.h + 20) {
+
+                                          if(p.isJackpot) { 
+                    p.isJackpot = false; // Makes it go away forever immediately
+                    p.color = '#fff';    // Turns the platform back to white
+                    let r = Math.floor(Math.random() * 1951) + 50; 
+                    addCredits(r); 
+                    showCreditToast(`💰 JACKPOT: +${r} CR!`); 
+                    SoundEngine.win(); 
+                }
                 
                 // RECYCLER ENERGY GAIN ON LANDING
                 if(!player.onG) {
@@ -2031,6 +2052,7 @@ if (ws.readyState === WebSocket.OPEN && currentUser && game.active) {
         game.platforms.forEach(o => {
             let sx = o.x - game.camX, sy = o.y - game.camY;
             if(sy < -600 || sy > canvas.height + 600) return; 
+            if(o.isJackpot) { ctx.font = "30px serif"; ctx.fillText("💰", sx + o.w/2 - 15, sy - 25); }
             
             ctx.fillStyle = o.color; 
             if(o.isHell) { 

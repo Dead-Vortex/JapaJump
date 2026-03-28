@@ -1708,6 +1708,22 @@
 
     function update() {
         if(!game.active || game.quizActive) return;
+        // --- INSTANT REPLAY ENGINE ---
+        player.hist = player.hist || [];
+        if(!game.replaying) {
+            player.hist.push({x:player.x, y:player.y, cx:game.camX, cy:game.camY});
+            if(player.hist.length > 90) player.hist.shift(); // Saves the last 1.5 seconds
+        } else {
+            let f = player.hist[Math.floor(game.replayIdx += 0.3)]; // 0.3 is the slow-mo speed!
+            if(f) {
+                player.x=f.x; player.y=f.y; game.camX=f.cx; game.camY=f.cy; draw();
+                ctx.fillStyle="red"; ctx.font="40px Bungee"; ctx.fillText("🔴 SLOW-MO REPLAY", 50, 80);
+                game.raf=requestAnimationFrame(update); return;
+            } else {
+                game.replaying = false; game.energy = 0; player.hist = [];
+            }
+        }
+        // -----------------------------
 
         // FETCH ALL ACTIVE UPGRADE MODIFIERS
         const solarMod = SHOP_ITEMS.solar.getEffect(gameSave.upgrades.solar);
@@ -1927,6 +1943,7 @@
        // VOID DEATH CHECK (PLATING RESTORE)
         if(player.y > game.voidLevel) { 
             let plateRestore = SHOP_ITEMS.plating.getEffect(gameSave.upgrades.plating);
+            if(plateRestore <= 0 && !game.replaying) { game.replaying = true; game.replayIdx = 0; return; }
             if(plateRestore > 0) { 
                 // Lose 200 energy for falling, but never drop below your Plate Armor limit
                 game.energy = Math.max(plateRestore, game.energy - 200); 

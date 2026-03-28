@@ -1817,6 +1817,7 @@
         // HOVER TECH GRAVITY MODIFIER
         player.vy += (0.8 - hovMod); 
         player.y += player.vy;
+        if(Math.abs(player.vx) > 5 || Math.abs(player.vy) > 5) spawnParticles(player.x + 25, player.y + 25, 1, skin.c);
         player.onG = false;
 
         // PLATFORM COLLISION
@@ -1835,6 +1836,7 @@
                 // RECYCLER ENERGY GAIN ON LANDING
                 if(!player.onG) {
                     SoundEngine.land();
+                    if(!player.onG) { game.camX += (Math.random()-0.5)*20; game.camY += (Math.random()-0.5)*20; }
                     if(recyMod > 0) {
                         game.energy = Math.min(game.maxEnergy, game.energy + recyMod);
                         spawnFloater(`+${recyMod} EN`, 'var(--jim-green)', player.x, player.y);
@@ -1990,7 +1992,10 @@ if (ws.readyState === WebSocket.OPEN && currentUser && game.active) {
             saveGame(); // This forces the 3-second heartbeat to send the new 3000+ score immediately
         }
 
+
+        if(document.getElementById('bg-music')) document.getElementById('bg-music').playbackRate = 1 + (game.score / 10000) * 0.5;
         draw();
+        
         game.raf = requestAnimationFrame(update);
     }
 

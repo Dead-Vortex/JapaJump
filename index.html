@@ -699,7 +699,13 @@
     /* =========================================================================
        MODULE 1: AUDIO SYNTHESIZER ENGINE
        ========================================================================= */
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          let audioCtx;
+      try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) audioCtx = new AudioContext();
+      } catch (e) {
+          console.warn("Audio blocked pending user interaction.");
+      }
 
              function startMusic() {
     const music = document.getElementById('bg-music');
@@ -753,12 +759,12 @@
 
     // Unlock audio context on first interaction as browsers require it
               // Unlock audio on first interaction
-      document.body.addEventListener('click', () => { 
-          if(audioCtx.state === 'suspended') {
-              audioCtx.resume();
-          }
-          startMusic(); // This triggers the gimkit.mp3
-      }, {once: true});
+          document.body.addEventListener('click', () => { 
+        if(audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        startMusic(); 
+    }, {once: true});
 
     /* =========================================================================
        MODULE 2: NETWORK & CLOUD SYNC (Google Apps Script Backend)
@@ -970,7 +976,12 @@
         achievements: []
     };
 
-    let gameSave = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
+        let gameSave = {};
+    try {
+        gameSave = JSON.parse(localStorage.getItem(SAVE_KEY)) || {};
+    } catch(e) { 
+        console.warn("Save data disabled due to browser privacy settings."); 
+    }
     gameSave = { ...DEFAULT_SAVE, ...gameSave };
     gameSave.upgrades = { ...DEFAULT_SAVE.upgrades, ...(gameSave.upgrades || {}) };
     gameSave.skins = { ...DEFAULT_SAVE.skins, ...(gameSave.skins || {}) };
@@ -1786,6 +1797,7 @@
         // INPUT HANDLING
         // INPUT HANDLING
         window.onkeydown = e => { 
+            if (e.target.tagName === 'INPUT') return; // <--- ADD THIS LINE!
             // CHAT TRIGGER: Only resets keys AFTER the prompt is done
             if (e.code === 'KeyT') { 
                 let m = prompt("CHAT:"); 
